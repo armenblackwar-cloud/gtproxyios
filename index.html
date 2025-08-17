@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GT‑Bot Портфель</title>
+  <meta name="theme-color" content="#0b132b" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" sizes="192x192" href="icon-192.png">
+  <link rel="icon" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>GT‑Bot Портфель</h1>
+    <button id="installBtn" hidden>Установить на устройство</button>
+  </header>
+
+  <section class="card cfg">
+    <h2>Настройки подключения</h2>
+    <div class="row">
+      <label>Прокси URL</label>
+      <input id="baseUrl" placeholder="https://gtbotproxy.onrender.com" />
+    </div>
+    <div class="row">
+      <label>X‑Proxy‑Token (опционально)</label>
+      <input id="proxyToken" placeholder="если задан на сервере" />
+    </div>
+    <div class="row">
+      <label>Порог «Пыль», $</label>
+      <input id="dustThreshold" type="number" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <label>Метод средней</label>
+      <select id="avgMethod">
+        <option value="fifo" selected>FIFO (как Bybit)</option>
+        <option value="wac">WAC (взв. средняя по BUY)</option>
+      </select>
+    </div>
+    <div class="btns">
+      <button id="saveCfg">Сохранить</button>
+      <button id="loadDemo">Демо</button>
+      <button id="refresh">Обновить</button>
+    </div>
+    <p class="hint">Хранилище: настройки сохраняются в вашем браузере (localStorage).</p>
+  </section>
+
+  <section id="status" class="status hidden"></section>
+
+  <section class="card">
+    <div class="toolbar">
+      <h2>Основной портфель</h2>
+      <div class="right">
+        <span id="updatedAt"></span>
+      </div>
+    </div>
+    <div class="summary">
+      <div>
+        <div class="k">Свободные USDT</div>
+        <div class="v"><span id="freeUsdt">–</span></div>
+      </div>
+      <div>
+        <div class="k">Стоимость портфеля</div>
+        <div class="v"><span id="totalUsd">–</span></div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table id="portfolio">
+        <thead>
+          <tr>
+            <th>Тикер</th>
+            <th class="num">Кол-во</th>
+            <th class="num">Средн. цена</th>
+            <th class="num">Цена (рынок)</th>
+            <th class="num">Стоимость, $</th>
+            <th class="num">PnL %</th>
+            <th class="num">PnL $</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>GT‑Bot • PWA</span>
+    <a href="#" id="clearCache">Очистить кеш</a>
+  </footer>
+
+  <template id="rowTpl">
+    <tr>
+      <td class="sym"></td>
+      <td class="num qty"></td>
+      <td class="num avg"></td>
+      <td class="num mkt"></td>
+      <td class="num val"></td>
+      <td class="num pnlp"></td>
+      <td class="num pnlu"></td>
+    </tr>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

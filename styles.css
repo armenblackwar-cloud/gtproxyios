@@ -1,0 +1,42 @@
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#0b132b;color:#e0e6f1;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #1c2541;background:#0b132b;position:sticky;top:0;z-index:5}
+h1{font-size:18px;margin:0}
+h2{font-size:16px;margin:0 0 10px 0}
+.card{background:#111a3a;margin:16px;border:1px solid #1c2541;border-radius:12px;padding:14px}
+.cfg .row{display:flex;gap:12px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.cfg label{min-width:200px;color:#9fb3d1}
+.cfg input, .cfg select{flex:1;min-width:260px;padding:10px;border-radius:8px;border:1px solid #2d3a6b;background:#0b132b;color:#e0e6f1}
+.cfg .btns{display:flex;gap:10px;margin-top:8px}
+button{border:1px solid #2d3a6b;background:#274690;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
+button:hover{background:#2e59aa}
+button:disabled{opacity:.5;cursor:not-allowed}
+.hint{color:#8aa2c7;font-size:12px;margin-top:6px}
+
+.status{margin:0 16px 8px 16px;padding:10px 12px;border-radius:10px;border:1px solid #2d3a6b;background:#112048}
+.status.hidden{display:none}
+.status.error{border-color:#8b1e3f;background:#3b1222}
+.status .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.summary{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:10px;margin:10px 0}
+.summary .k{color:#9fb3d1;font-size:12px}
+.summary .v{font-weight:600;font-size:16px}
+
+.tbl-wrap{overflow:auto;border:1px solid #1c2541;border-radius:8px}
+table{width:100%;border-collapse:separate;border-spacing:0}
+thead th{position:sticky;top:0;background:#0f1a3a;border-bottom:1px solid #1c2541;padding:8px 10px;text-align:left}
+tbody td{padding:8px 10px;border-bottom:1px dashed #1c2541}
+.num{text-align:right}
+tbody tr:hover{background:#0f1f44}
+td.green{background:#0f2c20;color:#9ef2c7}
+td.red{background:#3a1414;color:#f2a4a4}
+
+footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #1c2541;margin:16px;padding:10px 2px;color:#9fb3d1}
+a{color:#8cc0ff;text-decoration:none}
+a:hover{text-decoration:underline}
+
+@media (max-width:720px){
+  .cfg label{min-width:140px}
+  .summary{grid-template-columns:1fr}
+}
