@@ -1,278 +1,91 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>GT-Бот · Дашборд</title>
-
-  <!-- iOS: полноэкранный режим и статус-бар -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="GT-Бот">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="theme-color" content="#111111" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+  <title>GT-Bot Портфель</title>
   <style>
-    :root{
-      --bg:#0f1115; --card:#171a21; --muted:#8a8f98; --text:#e9edf1; --green:#1ec28b; --red:#ff6b6b; --border:#2a2f3a; --accent:#4f86ff;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background: #f5f5f5;
+      color: #222;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
-      color:var(--text); background:var(--bg);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      padding-bottom: env(safe-area-inset-bottom);
+    h2 {
+      margin: 20px 0 10px;
+      font-size: 18px;
+      text-align: center;
     }
-    header{
-      position:sticky; top:0; z-index:10;
-      backdrop-filter:saturate(180%) blur(10px);
-      background:rgba(15,17,21,.7);
-      border-bottom:1px solid var(--border);
+    .grid {
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .wrap{max-width:1100px; margin:0 auto; padding:12px 16px;}
-    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
-    h1{font-size:18px; margin:0; letter-spacing:.3px}
-    .pill{padding:8px 12px; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-size:12px;}
-    button{
-      background:var(--accent); color:white; border:0; border-radius:10px; padding:10px 14px; font-weight:600;
-      cursor:pointer;
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 480px;
     }
-    button.secondary{background:#242a33; color:var(--text); border:1px solid var(--border)}
-    main{max-width:1100px; margin:12px auto 100px; padding:0 16px; display:grid; gap:16px}
-    .card{
-      background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden;
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      text-align: center;
+      font-size: 14px;
     }
-    .card h2{margin:0; padding:14px 16px; font-size:16px; border-bottom:1px solid var(--border)}
-    .meta{display:flex; gap:10px; flex-wrap:wrap; padding:8px 16px; color:var(--muted); font-size:12px; border-bottom:1px solid var(--border)}
-    .grid{
-      width:100%; overflow:auto; -webkit-overflow-scrolling:touch;
+    th {
+      background: #f0f0f0;
+      font-weight: 600;
     }
-    table{width:100%; border-collapse:collapse; font-size:13px; min-width:680px}
-    th,td{padding:10px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap}
-    th{position:sticky; top:0; background:#1a1f28; z-index:1; text-align:right; color:#c8ccd3}
-    td:first-child, th:first-child{text-align:left}
-    .pos{color:var(--green); font-variant-numeric:tabular-nums}
-    .neg{color:var(--red);   font-variant-numeric:tabular-nums}
-    .muted{color:var(--muted)}
-    .footer{
-      position:fixed; bottom:0; left:0; right:0; background:rgba(15,17,21,.85); backdrop-filter:blur(8px);
-      border-top:1px solid var(--border);
-    }
-    .footer .wrap{display:flex; gap:10px; align-items:center; justify-content:space-between}
-    .hint{font-size:12px; color:var(--muted)}
-    @media (max-width:740px){
-      table{min-width:600px}
+
+    /* 🔹 адаптив под айфон */
+    @media (max-width: 600px) {
+      body { padding: 5px; }
+      table { font-size: 11px; min-width: auto; }
+      th, td { padding: 4px 3px; }
+      h2 { font-size: 16px; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap row">
-      <h1>GT-Бот · Дашборд</h1>
-      <span id="status" class="pill">Загрузка…</span>
-      <span id="updated" class="pill">Обновлено — …</span>
-      <button id="btnReload" class="secondary">🔄 Обновить</button>
-    </div>
-  </header>
+  <h2>📊 Портфель</h2>
+  <div class="grid" id="portfolio">Загрузка...</div>
 
-  <main>
-    <section class="card" id="portfolioCard">
-      <h2>📊 Портфель</h2>
-      <div class="meta">
-        <span>Всего позиций: <b id="pfCount">—</b></span>
-        <span>Свободные USDT: <b id="pfFree">—</b></span>
-        <span>Стоимость портфеля: <b id="pfTotal">—</b></span>
-      </div>
-      <div class="grid">
-        <table id="portfolio"></table>
-      </div>
-    </section>
+  <h2>📑 Открытые ордера</h2>
+  <div class="grid" id="orders">Загрузка...</div>
 
-    <section class="card" id="ordersCard">
-      <h2>📑 Открытые ордера</h2>
-      <div class="meta">
-        <span>Активных ордеров: <b id="ooCount">—</b></span>
-      </div>
-      <div class="grid">
-        <table id="orders"></table>
-      </div>
-    </section>
-  </main>
+  <script>
+    async function loadData() {
+      try {
+        const url = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
+        const res = await fetch(url);
+        const data = await res.json();
 
-  <div class="footer">
-    <div class="wrap">
-      <div class="hint">Добавь на айфон: <b>Поделиться → На экран «Домой»</b> (будет как приложение)</div>
-      <div class="row">
-        <button id="btnInstall" class="secondary">➕ Установить</button>
-        <button id="btnAuto" class="">⏱ Автообновление: выкл</button>
-      </div>
-    </div>
-  </div>
+        function renderTable(arr) {
+          if (!arr || !arr.length) return "<p>Нет данных</p>";
+          let html = "<table><thead><tr>";
+          arr[0].forEach(h => { html += "<th>"+h+"</th>"; });
+          html += "</tr></thead><tbody>";
+          for (let i=1;i<arr.length;i++){
+            html += "<tr>";
+            arr[i].forEach(c => { html += "<td>"+c+"</td>"; });
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+          return html;
+        }
 
-<script>
-/** ====== НАСТРОЙКА API ======
- * По умолчанию используем твою ссылку Apps Script (JSON: { portfolio, openOrders }).
- * Можно переопределить через ?api=... в URL.
- */
-const DEFAULT_API = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
-const params = new URLSearchParams(location.search);
-const API_URL = params.get("api") || DEFAULT_API;
+        document.getElementById("portfolio").innerHTML = renderTable(data.portfolio);
+        document.getElementById("orders").innerHTML    = renderTable(data.openOrders);
 
-const elStatus  = document.getElementById('status');
-const elUpdated = document.getElementById('updated');
-const elPfCount = document.getElementById('pfCount');
-const elPfFree  = document.getElementById('pfFree');
-const elPfTotal = document.getElementById('pfTotal');
-const elOoCount = document.getElementById('ooCount');
-const btnReload = document.getElementById('btnReload');
-const btnInstall= document.getElementById('btnInstall');
-const btnAuto   = document.getElementById('btnAuto');
-
-let autoTimer = null;
-let deferredPrompt = null; // для Android/desktop; на iOS — ручная установка
-
-function fmtNum(n, digits=2){
-  if (n === "" || n === null || n === undefined || isNaN(Number(n))) return "—";
-  return Number(n).toLocaleString('ru-RU', { maximumFractionDigits: digits });
-}
-function clsPnL(v){
-  const x = Number(String(v).replace('%',''));
-  if (!isFinite(x) || x===0) return 'muted';
-  return x>0 ? 'pos' : 'neg';
-}
-function renderTable(id, rows){
-  const table = document.getElementById(id);
-  table.innerHTML = "";
-  if (!rows || !rows.length){
-    table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
-    return;
-  }
-  rows.forEach((row, i) => {
-    const tr = document.createElement("tr");
-    row.forEach((cell, j) => {
-      const tag = i===0 ? "th" : "td";
-      const td = document.createElement(tag);
-      let val = cell;
-
-      // лёгкая косметика для портфеля: PnL%/PnL$ подсветим
-      if (id === 'portfolio' && i>0 && (j===5 || j===6)) {
-        td.className = clsPnL(val);
-      }
-      td.textContent = val;
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
-}
-
-/** Из портфеля — вытащим сводки из шапки (там у тебя I1/J1 и K1/L1, но в API мы читаем весь range displayValues).
- * Если первой строкой идут заголовки, попробуем найти «Свободные USDT» и «Общая стоимость…» в первых 2 строках.
- * Если не найдём — оставим прочерк.
- */
-function extractPortfolioSummary(portfolioRows){
-  try{
-    // быстрый путь: если в табличной части есть «Свободные USDT»/«Общая стоимость…» в первых 3 строках
-    let free = null, total = null;
-    const scan = portfolioRows.slice(0,3);
-    for (const r of scan){
-      for (let i=0;i<r.length-1;i++){
-        const k = String(r[i]||'').toLowerCase();
-        if (k.includes('свободные usdt')) free = r[i+1];
-        if (k.includes('общая стоимость портфеля')) total = r[i+1];
+      } catch (err) {
+        document.getElementById("portfolio").innerHTML = "<p>Ошибка загрузки: "+err+"</p>";
       }
     }
-    return { free, total };
-  }catch(_){ return { free:null, total:null }; }
-}
-
-async function loadData() {
-  const t0 = performance.now();
-  elStatus.textContent = "Обновляю…";
-  try {
-    const ctrl = new AbortController();
-    const timeout = setTimeout(()=>ctrl.abort(), 15000); // 15с таймаут
-    const res = await fetch(API_URL, { signal: ctrl.signal, cache: "no-store" });
-    clearTimeout(timeout);
-
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-
-    // Рендер таблиц (в API ключи: portfolio, openOrders)
-    const portfolio = Array.isArray(data.portfolio) ? data.portfolio : [];
-    const orders    = Array.isArray(data.openOrders) ? data.openOrders : [];
-
-    renderTable("portfolio", portfolio);
-    renderTable("orders", orders);
-
-    // Сводки
-    elPfCount.textContent = Math.max(0, portfolio.length - 1);
-    elOoCount.textContent = Math.max(0, orders.length - 1);
-
-    const { free, total } = extractPortfolioSummary(portfolio);
-    elPfFree.textContent  = free  != null ? free  : "—";
-    elPfTotal.textContent = total != null ? total : "—";
-
-    // Метки
-    const dt = new Date();
-    elUpdated.textContent = "Обновлено — " + dt.toLocaleString('ru-RU');
-    elStatus.textContent  = "Онлайн";
-    // сохраним последний удачный снапшот — SW тоже может кешировать, но продублируем
-    localStorage.setItem("lastData", JSON.stringify({ data, ts: Date.now() }));
-  } catch (err) {
-    elStatus.textContent = "Оффлайн";
-    // попробуем из локального снапшота
-    const snap = localStorage.getItem("lastData");
-    if (snap){
-      try{
-        const { data } = JSON.parse(snap);
-        renderTable("portfolio", data.portfolio || []);
-        renderTable("orders", data.openOrders || []);
-      }catch(_){}
-    }
-  } finally {
-    const ms = Math.round(performance.now() - t0);
-    console.log("loadData done in", ms, "ms");
-  }
-}
-
-btnReload.onclick = () => loadData();
-
-btnAuto.onclick = () => {
-  if (autoTimer){
-    clearInterval(autoTimer);
-    autoTimer = null;
-    btnAuto.textContent = "⏱ Автообновление: выкл";
-  } else {
-    autoTimer = setInterval(loadData, 30000); // каждые 30 сек
-    btnAuto.textContent = "⏱ Автообновление: вкл (30с)";
-  }
-};
-
-// PWA установка (Android/desktop). На iOS — вручную через «На экран Домой».
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-btnInstall.onclick = async () => {
-  if (deferredPrompt){
-    deferredPrompt.prompt();
-    deferredPrompt = null;
-  } else {
-    alert("На iPhone: Поделиться → На экран «Домой».\nНа Android/десктопе кнопка появится, когда браузер предложит установку.");
-  }
-};
-
-// Регистрация service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW ok')).catch(console.warn);
-}
-
-// Стартовая загрузка
-loadData();
-</script>
+    loadData();
+  </script>
 </body>
 </html>
