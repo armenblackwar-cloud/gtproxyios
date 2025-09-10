@@ -23,39 +23,6 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-function renderTable(id, rows){
-  const table = document.getElementById(id);
-  table.innerHTML = "";
-  if (!rows || !rows.length){
-    table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
-    return;
-  }
-  rows.forEach((row, i) => {
-    const tr = document.createElement("tr");
-    row.forEach((cell, j) => {
-      const tag = i===0 ? "th" : "td";
-      const td = document.createElement(tag);
-      let val = String(cell).trim();
-
-      // Подсветка BUY / SELL
-      if (id === 'orders' && i>0 && j===3){
-        td.className = val === "BUY" ? "buy" : val === "SELL" ? "sell" : "";
-      }
-
-      // Подсветка PnL (для портфеля)
-      if (id === 'portfolio' && i>0 && (j===5 || j===6)){
-        const num = parseFloat(val);
-        if (!isNaN(num)) td.className = num>0 ? "pos" : num<0 ? "neg" : "muted";
-      }
-
-      td.textContent = val;
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
-}
-
-
 // Политика:
 //  - API: network-first с таймаутом, потом кеш last-response (если есть)
 //  - статика: cache-first
