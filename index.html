@@ -20,7 +20,7 @@
       background:var(--bg); color:var(--text);
     }
     header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px}
-    .wrap{display:flex; gap:8px; align-items:center}
+    .wrap{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
     h1{font-size:14px; margin:0; color:var(--yellow);}
     .pill{padding:1px 4px; border:1px solid var(--border); border-radius:4px; font-size:10px; color:var(--muted)}
     main{padding:6px; display:grid; gap:8px}
@@ -44,6 +44,9 @@
     <div class="wrap">
       <h1>GT-Бот</h1>
       <span id="status" class="pill">Загрузка…</span>
+      <span id="pfFree" class="pill">USDT: —</span>
+      <span id="pfTotal" class="pill">Σ: —</span>
+      <span id="updated" class="pill">—</span>
     </div>
   </header>
 
@@ -77,10 +80,16 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
+
   rows.forEach((row, i)=>{
+    const textRow = row.join(" ").toLowerCase();
+    if (id==='portfolio' && i>0 &&
+        (textRow.includes("свободные usdt") || textRow.includes("общая стоимость") || textRow.includes("обновлено"))){
+      return; // ❌ эти строки не показываем
+    }
+
     const tr = document.createElement("tr");
     row.forEach((cell, j)=>{
-      // ⚡ Убираем ненужные колонки
       if (id==='orders'){
         if (j===0 || j===1 || j===5) return; // ❌ убираем Время, Категорию и Статус
       }
@@ -103,9 +112,21 @@ async function loadData(){
     document.getElementById('status').textContent="Обновляю…";
     const res = await fetch(API_URL);
     const data = await res.json();
+
     renderTable("portfolio", data.portfolio);
     renderTable("orders", data.openOrders);
+
     document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
+
+    // 📌 вытащим данные из первых строк "Портфеля"
+    const headRows = data.portfolio.slice(0,5);
+    headRows.forEach(r=>{
+      const txt = r.join(" ").toLowerCase();
+      if (txt.includes("свободные usdt")) document.getElementById('pfFree').textContent = "USDT: "+r[1];
+      if (txt.includes("общая стоимость")) document.getElementById('pfTotal').textContent = "Σ: "+r[1];
+      if (txt.includes("обновлено")) document.getElementById('updated').textContent = r[1];
+    });
+
     document.getElementById('status').textContent="Онлайн";
   }catch(e){
     document.getElementById('status').textContent="Ошибка";
