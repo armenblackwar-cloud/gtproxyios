@@ -21,17 +21,21 @@
       background:var(--bg); color:var(--text);
     }
     header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px}
-    .wrap{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .wrap{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     h1{font-size:14px; margin:0; color:var(--yellow);}
-    .pill{padding:1px 4px; border:1px solid var(--border); border-radius:4px; font-size:10px; color:var(--muted)}
+    .pill{
+      padding:1px 6px; border-radius:10px; font-size:10px; 
+      font-weight:600; min-width:55px; text-align:center;
+    }
+    .pill.online{background:#193e2d; color:var(--green);}
+    .pill.offline{background:#3e1919; color:var(--red);}
     main{padding:6px; display:grid; gap:8px}
     .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
     .grid{overflow-x:hidden}
-    table{width:100%; border-collapse:collapse; font-size:8px; table-layout:fixed}
+    table{width:100%; border-collapse:collapse; font-size:7.5px; table-layout:fixed}
     th,td{padding:3px 2px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap}
     th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
-    td{font-size:8px}
     .buy{color:var(--green); font-weight:600}
     .sell{color:var(--red); font-weight:600}
     .pos{color:var(--green); font-weight:600}
@@ -44,9 +48,9 @@
   <header>
     <div class="wrap">
       <h1>GT-Бот</h1>
-      <span id="status" class="pill">Загрузка…</span>
-      <span id="free" class="pill">USDT: —</span>
-      <span id="total" class="pill">Σ: —</span>
+      <span id="status" class="pill">—</span>
+      <span id="pfFree" class="pill">USDT: —</span>
+      <span id="pfTotal" class="pill">∑: —</span>
       <span id="updated" class="pill">—</span>
     </div>
   </header>
@@ -84,13 +88,12 @@ function renderTable(id, rows){
   rows.forEach((row, i)=>{
     const tr = document.createElement("tr");
     row.forEach((cell, j)=>{
-      // ⚡ фильтруем лишние колонки
+      // ⚡ Убираем ненужные колонки
+      if (id==='orders'){
+        if (j===0 || j===1 || j===5) return; // ❌ Время, Категория, Статус
+      }
       if (id==='portfolio'){
         if (i===0 && (row[j].includes("Свобод") || row[j].includes("Общая") || row[j].includes("Обнов"))) return;
-        if (j>=7) return; // лишние колонки в портфеле убираем
-      }
-      if (id==='orders'){
-        if (j===0 || j===1 || j===5) return; // убираем Время, Категорию, Статус
       }
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
@@ -102,40 +105,41 @@ function renderTable(id, rows){
       td.textContent = val;
       tr.appendChild(td);
     });
-    if (tr.children.length) table.appendChild(tr);
+    table.appendChild(tr);
   });
 }
 
 async function loadData(){
   try{
     document.getElementById('status').textContent="Обновляю…";
+    document.getElementById('status').className="pill";
     const res = await fetch(API_URL);
     const data = await res.json();
-
-    // таблицы
     renderTable("portfolio", data.portfolio);
     renderTable("orders", data.openOrders);
-
-    // счетчики
     document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
 
-    // сводка
-    const pf = data.portfolio||[];
-    let free=null,total=null;
-    pf.forEach(r=>{
-      r.forEach((c,j)=>{
-        const txt=String(c).toLowerCase();
-        if (txt.includes("свобод")) free=r[j+1];
-        if (txt.includes("общая")) total=r[j+1];
-      });
-    });
-    document.getElementById('free').textContent = "USDT: "+(free||"—");
-    document.getElementById('total').textContent= "Σ: "+(total||"—");
-    document.getElementById('updated').textContent= new Date().toLocaleString();
+    // достаем сводку
+    let free = "—", total="—";
+    try{
+      const scan = data.portfolio.slice(0,3);
+      for (const r of scan){
+        for (let i=0;i<r.length-1;i++){
+          const k = String(r[i]||'').toLowerCase();
+          if (k.includes('свободные usdt')) free = r[i+1];
+          if (k.includes('общая стоимость портфеля')) total = r[i+1];
+        }
+      }
+    }catch(_){}
+    document.getElementById('pfFree').textContent = "USDT: "+free;
+    document.getElementById('pfTotal').textContent = "∑: "+total;
 
+    document.getElementById('updated').textContent = new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
+    document.getElementById('status').className="pill online";
   }catch(e){
-    document.getElementById('status').textContent="Ошибка";
+    document.getElementById('status').textContent="Оффлайн";
+    document.getElementById('status').className="pill offline";
   }
 }
 
