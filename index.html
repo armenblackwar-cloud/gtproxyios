@@ -73,9 +73,9 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
 
 function clsPnL(v){
-  const x = parseFloat(v);
-  if (isNaN(x) || x===0) return 'muted';
-  return x>0 ? 'pos' : 'neg';
+  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
+  if (isNaN(num) || num === 0) return 'muted';
+  return num > 0 ? 'pos' : 'neg';
 }
 
 function renderTable(id, rows){
@@ -85,32 +85,34 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
-  rows.forEach((row, i)=>{
-    const tr = document.createElement("tr");
-    row.forEach((cell, j)=>{
-      // ⚡ Убираем ненужные колонки
-      if (id==='orders'){
-        if (j===0 || j===1 || j===5) return; // ❌ Время, Категория, Статус
-      }
-      if (id==='portfolio'){
-        if (i===0 && (row[j].includes("Свобод") || row[j].includes("Общая") || row[j].includes("Обнов"))) return;
-      }
 
+  rows.forEach((row, i)=>{
+    let filteredRow = row;
+
+    if (id === 'orders'){
+      // оставляем только нужные колонки
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]];
+    }
+
+    if (id === 'portfolio'){
+      // оставляем только первые 7 колонок
+      filteredRow = row.slice(0,7);
+    }
+
+    const tr = document.createElement("tr");
+    filteredRow.forEach((cell, j)=>{
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
-      let val   = String(cell).trim();
+      const val = String(cell).trim();
 
-      // ✅ Подсветка только BUY/SELL
-      if (id==='orders' && i>0 && j===3){
+      // ✅ Подсветка только у ячейки BUY/SELL
+      if (id==='orders' && i>0 && j===1){
         td.className = val==="BUY" ? "buy" : val==="SELL" ? "sell" : "";
       }
 
       // ✅ Подсветка только PnL % и PnL $
       if (id==='portfolio' && i>0 && (j===5 || j===6)){
-        const num = parseFloat(val.replace(',','.')); // исправляем , и пробелы
-        if (!isNaN(num) && num !== 0){
-          td.className = num > 0 ? "pos" : "neg";
-        }
+        td.className = clsPnL(val);
       }
 
       td.textContent = val;
@@ -119,7 +121,7 @@ function renderTable(id, rows){
     table.appendChild(tr);
   });
 }
-  
+
 async function loadData(){
   try{
     document.getElementById('status').textContent="Обновляю…";
@@ -131,7 +133,7 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
 
-    // Сводка
+    // сводка
     let free = "—", total="—";
     try{
       const scan = data.portfolio.slice(0,3);
