@@ -17,10 +17,21 @@
       --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
     }
     body{
-      margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
-      background:var(--bg); color:var(--text);
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+      background:var(--bg);
+      color:var(--text);
+      padding-top: env(safe-area-inset-top); /* ✅ отступ под чёлку iPhone */
     }
-    header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px}
+
+    header{
+      position:sticky;
+      top:0;
+      background:#1a1f28;
+      padding:10px 6px;   /* было 6px — сделал 10px */
+      font-size:11px;
+    }
+
     .wrap{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     h1{font-size:14px; margin:0; color:var(--yellow);}
     .pill{
