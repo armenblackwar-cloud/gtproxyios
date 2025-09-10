@@ -81,12 +81,26 @@
   <footer>📱 Добавь на iPhone: Поделиться → «На экран Домой»</footer>
 
 <script>
-// ======= ПРОСТАЯ ЗАЩИТА ПАРОЛЕМ =======
-const PASSWORD = "1234"; // 🔑 Поменяй здесь
-let input = prompt("Введите пароль для доступа:");
-if (input !== PASSWORD) {
-  document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px'>⛔ Доступ запрещён</h2>";
-  throw new Error("Access denied");
+// ======= ПРОСТАЯ ЗАЩИТА ПАРОЛЕМ (сохранение в localStorage) =======
+const PASSWORD = "1234"; // 🔑 поменяй пароль тут
+const STORAGE_KEY = "gtbot_auth";
+
+function askPassword(){
+  let input = prompt("Введите пароль для доступа:");
+  if (input === PASSWORD){
+    localStorage.setItem(STORAGE_KEY, "ok");
+    return true;
+  } else {
+    alert("⛔ Неверный пароль!");
+    return false;
+  }
+}
+
+if (localStorage.getItem(STORAGE_KEY) !== "ok"){
+  if (!askPassword()){
+    document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px'>⛔ Доступ запрещён</h2>";
+    throw new Error("Access denied");
+  }
 }
 
 <script>
