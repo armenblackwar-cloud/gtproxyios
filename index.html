@@ -1,106 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GT‑Bot Портфель</title>
-  <meta name="theme-color" content="#0b132b" />
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" sizes="192x192" href="icon-192.png">
-  <link rel="icon" sizes="512x512" href="icon-512.png">
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>GT-Бот Дашборд</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 20px; }
+    h1 { text-align: center; }
+    .section { margin-bottom: 40px; }
+    table { border-collapse: collapse; width: 100%; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #333; color: #fff; }
+    tr:nth-child(even) { background: #f2f2f2; }
+    .refresh { display:block; margin:20px auto; padding:10px 20px; cursor:pointer; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>GT‑Bot Портфель</h1>
-    <button id="installBtn" hidden>Установить на устройство</button>
-  </header>
+  <h1>GT-Бот — Данные из Google Sheets</h1>
 
-  <section class="card cfg">
-    <h2>Настройки подключения</h2>
-    <div class="row">
-      <label>Прокси URL</label>
-      <input id="baseUrl" placeholder="https://gtbotproxy.onrender.com" />
-    </div>
-    <div class="row">
-      <label>X‑Proxy‑Token (опционально)</label>
-      <input id="proxyToken" placeholder="если задан на сервере" />
-    </div>
-    <div class="row">
-      <label>Порог «Пыль», $</label>
-      <input id="dustThreshold" type="number" step="0.01" value="1" />
-    </div>
-    <div class="row">
-      <label>Метод средней</label>
-      <select id="avgMethod">
-        <option value="fifo" selected>FIFO (как Bybit)</option>
-        <option value="wac">WAC (взв. средняя по BUY)</option>
-      </select>
-    </div>
-    <div class="btns">
-      <button id="saveCfg">Сохранить</button>
-      <button id="loadDemo">Демо</button>
-      <button id="refresh">Обновить</button>
-    </div>
-    <p class="hint">Хранилище: настройки сохраняются в вашем браузере (localStorage).</p>
-  </section>
+  <button class="refresh" onclick="loadData()">🔄 Обновить данные</button>
 
-  <section id="status" class="status hidden"></section>
+  <div class="section">
+    <h2>📊 Портфель</h2>
+    <table id="portfolio"></table>
+  </div>
 
-  <section class="card">
-    <div class="toolbar">
-      <h2>Основной портфель</h2>
-      <div class="right">
-        <span id="updatedAt"></span>
-      </div>
-    </div>
-    <div class="summary">
-      <div>
-        <div class="k">Свободные USDT</div>
-        <div class="v"><span id="freeUsdt">–</span></div>
-      </div>
-      <div>
-        <div class="k">Стоимость портфеля</div>
-        <div class="v"><span id="totalUsd">–</span></div>
-      </div>
-    </div>
+  <div class="section">
+    <h2>📑 Открытые ордера</h2>
+    <table id="orders"></table>
+  </div>
 
-    <div class="tbl-wrap">
-      <table id="portfolio">
-        <thead>
-          <tr>
-            <th>Тикер</th>
-            <th class="num">Кол-во</th>
-            <th class="num">Средн. цена</th>
-            <th class="num">Цена (рынок)</th>
-            <th class="num">Стоимость, $</th>
-            <th class="num">PnL %</th>
-            <th class="num">PnL $</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </section>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
 
-  <footer>
-    <span>GT‑Bot • PWA</span>
-    <a href="#" id="clearCache">Очистить кеш</a>
-  </footer>
+    async function loadData() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
 
-  <template id="rowTpl">
-    <tr>
-      <td class="sym"></td>
-      <td class="num qty"></td>
-      <td class="num avg"></td>
-      <td class="num mkt"></td>
-      <td class="num val"></td>
-      <td class="num pnlp"></td>
-      <td class="num pnlu"></td>
-    </tr>
-  </template>
+        renderTable("portfolio", data.portfolio || []);
+        renderTable("orders", data.openOrders || []);
+      } catch (err) {
+        alert("Ошибка загрузки: " + err);
+      }
+    }
 
-  <script src="app.js"></script>
+    function renderTable(id, rows) {
+      const table = document.getElementById(id);
+      table.innerHTML = "";
+      if (!rows.length) {
+        table.innerHTML = "<tr><td>Нет данных</td></tr>";
+        return;
+      }
+      rows.forEach((row, i) => {
+        const tr = document.createElement("tr");
+        row.forEach(cell => {
+          const td = document.createElement(i === 0 ? "th" : "td");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+    }
+
+    // загружаем сразу при открытии
+    loadData();
+  </script>
 </body>
 </html>
