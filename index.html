@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GT-Бот · Дашборд</title>
 
   <!-- iOS PWA -->
@@ -11,40 +11,57 @@
   <meta name="apple-mobile-web-app-title" content="GT-Бот">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
- <style>
-  :root{
-    --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
-    --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
-  }
-  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
-       background:var(--bg); color:var(--text);}
-  header{position:sticky; top:0; background:#10141b; padding:4px; font-size:10px; border-bottom:1px solid var(--border)}
-  .wrap{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
-  h1{font-size:12px; margin:0; color:var(--yellow);}
-  .pill{padding:1px 4px; border:1px solid var(--border); border-radius:4px; font-size:9px; color:var(--muted)}
-  main{padding:4px; display:grid; gap:6px}
-  .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
-  .card h2{margin:0; padding:4px; font-size:11px; border-bottom:1px solid var(--border); color:var(--yellow)}
-  .grid{overflow-x:hidden}
-  /* таблицы ещё компактнее */
-  table{width:100%; border-collapse:collapse; font-size:7.5px; table-layout:fixed}
-  th,td{padding:2px 1px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
-  td{font-size:7.5px}
-  .buy{color:var(--green); font-weight:600}
-  .sell{color:var(--red); font-weight:600}
-  .pos{color:var(--green); font-weight:600}
-  .neg{color:var(--red); font-weight:600}
-  .muted{color:var(--muted)}
-  footer{padding:4px; font-size:8px; color:var(--muted); text-align:center}
-</style>
+  <style>
+    :root{
+      --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
+      --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
+    }
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+         background:var(--bg); color:var(--text);}
+    header{
+      position:sticky; top:0; background:#161a22; 
+      padding:6px; font-size:10px; border-bottom:1px solid var(--border);
+      box-shadow:0 1px 2px rgba(0,0,0,0.4); /* лёгкая тень */
+    }
+    .wrap{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+    h1{font-size:13px; margin:0; color:var(--yellow); font-weight:700;}
+    .pill{
+      padding:2px 6px; border:1px solid var(--border); border-radius:6px;
+      font-size:9px; color:var(--muted); background:#1e222d;
+    }
+    main{padding:6px; display:grid; gap:8px}
+    .card{
+      background:var(--card); border:1px solid var(--border);
+      border-radius:10px; overflow:hidden
+    }
+    .card h2{
+      margin:0; padding:6px; font-size:12px;
+      border-bottom:1px solid var(--border); color:var(--yellow)
+    }
+    .grid{overflow-x:hidden}
+    table{
+      width:100%; border-collapse:collapse; font-size:7px; table-layout:fixed
+    }
+    th,td{
+      padding:2px 1px; border-bottom:1px solid var(--border);
+      text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis
+    }
+    th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
+    td{font-size:7px}
+    .buy{color:var(--green); font-weight:600}
+    .sell{color:var(--red); font-weight:600}
+    .pos{color:var(--green); font-weight:600}
+    .neg{color:var(--red); font-weight:600}
+    .muted{color:var(--muted)}
+    footer{padding:4px; font-size:8px; color:var(--muted); text-align:center}
+  </style>
 </head>
 <body>
   <header>
     <div class="wrap">
       <h1>GT-Бот</h1>
-      <span id="status"  class="pill">Загрузка…</span>
-      <span id="pfFree"  class="pill">USDT: —</span>
+      <span id="status" class="pill">Загрузка…</span>
+      <span id="pfFree" class="pill">USDT: —</span>
       <span id="pfTotal" class="pill">Σ: —</span>
       <span id="updated" class="pill">—</span>
     </div>
@@ -67,14 +84,6 @@
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
 
-/* какие колонки показывать */
-const KEEP = {
-  // Портфель: берем только первые 7 столбцов (A..G)
-  portfolio: [0,1,2,3,4,5,6],
-  // Ордера: оставляем Монета(2), Сторона(3), Тип(4), Цена(6), Кол-во(8), Остаток(9)
-  orders:    [2,3,4,6,8,9]
-};
-
 function clsPnL(v){
   const x = parseFloat(v);
   if (isNaN(x) || x===0) return 'muted';
@@ -88,73 +97,55 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
-
-  const keepIdx = KEEP[id];
-
   rows.forEach((row, i)=>{
-    // из портфеля не показываем служебные строки
-    if (id==='portfolio' && i>0){
-      const txt = row.join(" ").toLowerCase();
-      if (txt.includes("свободные usdt") || txt.includes("общая стоимость") || txt.includes("обновлено")) return;
-    }
-
     const tr = document.createElement("tr");
-
-    keepIdx.forEach((origJ, newJ)=>{
+    row.forEach((cell, j)=>{
+      // убираем ненужные столбцы
+      if (id==='orders'){
+        if (j===0 || j===1 || j===5) return; // ❌ Время, Категория, Статус
+      }
+      if (id==='portfolio'){
+        if (i===0 && (j>=7)) return; // ❌ Свободные, Общая, Обновлено
+        if (i>0 && (j>=7)) return;
+      }
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
-      const val = row[origJ] ?? "";
+      let val   = String(cell).trim();
 
-      // Подсветки
-      if (id==='orders' && i>0 && newJ===1){           // Сторона после фильтра — индекс 1
-        const side = String(val).trim().toUpperCase();
-        td.className = side==="BUY" ? "buy" : side==="SELL" ? "sell" : "";
-      }
-      if (id==='portfolio' && i>0 && (newJ===5 || newJ===6)){ // PnL % и $ — индексы 5 и 6 после фильтра
-        td.className = clsPnL(val);
-      }
+      if (id==='orders' && i>0 && j===3) td.className = val==="BUY"?"buy":val==="SELL"?"sell":"";
+      if (id==='portfolio' && i>0 && (j===5 || j===6)) td.className = clsPnL(val);
 
-      td.textContent = String(val).trim();
+      td.textContent = val;
       tr.appendChild(td);
     });
-
     table.appendChild(tr);
   });
-}
-
-function extractTopBadges(portfolio){
-  try{
-    const scan = portfolio.slice(0,5);
-    let free=null, total=null, upd=null;
-    for (const r of scan){
-      for (let i=0;i<r.length-1;i++){
-        const k = String(r[i]||'').toLowerCase();
-        if (k.includes('свободные usdt')) free  = r[i+1];
-        if (k.includes('общая стоимость')) total = r[i+1];
-        if (k.includes('обновлено'))       upd   = r[i+1];
-      }
-    }
-    if (free  != null) document.getElementById('pfFree').textContent  = "USDT: " + free;
-    if (total != null) document.getElementById('pfTotal').textContent = "Σ: " + total;
-    if (upd   != null) document.getElementById('updated').textContent = upd;
-  }catch(_){}
 }
 
 async function loadData(){
   try{
     document.getElementById('status').textContent="Обновляю…";
-    const res = await fetch(API_URL, {cache:"no-store"});
+    const res = await fetch(API_URL);
     const data = await res.json();
 
-    const portfolio = Array.isArray(data.portfolio)  ? data.portfolio  : [];
-    const orders    = Array.isArray(data.openOrders) ? data.openOrders : [];
+    renderTable("portfolio", data.portfolio);
+    renderTable("orders", data.openOrders);
 
-    renderTable("portfolio", portfolio);
-    renderTable("orders", orders);
+    document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
 
-    document.getElementById('ooCount').textContent = Math.max(0, orders.length-1);
-    extractTopBadges(portfolio);
+    // вытащим USDT/сумму из первых строк портфеля
+    try{
+      const scan = data.portfolio.slice(0,3);
+      for (const r of scan){
+        for (let i=0;i<r.length-1;i++){
+          const k = String(r[i]||'').toLowerCase();
+          if (k.includes('usdt')) document.getElementById('pfFree').textContent="USDT: "+r[i+1];
+          if (k.includes('общая стоимость')) document.getElementById('pfTotal').textContent="Σ: "+r[i+1];
+        }
+      }
+    }catch(_){}
 
+    document.getElementById('updated').textContent=new Date().toLocaleString();
     document.getElementById('status').textContent="Онлайн";
   }catch(e){
     document.getElementById('status').textContent="Ошибка";
