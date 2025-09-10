@@ -85,28 +85,43 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
+
   rows.forEach((row, i)=>{
+    // ⚡ фильтруем ненужные колонки
+    let filteredRow = row;
+
+    if (id === 'orders'){
+      // убираем: Время (0), Категория (1), Статус (5)
+      filteredRow = row.filter((_, j)=> ![0,1,5].includes(j));
+    }
+
+    if (id === 'portfolio'){
+      if (i === 0){
+        // убираем заголовки: Свободные, Общая, Обновлено
+        filteredRow = row.filter(h =>
+          !(String(h).includes("Свобод") || String(h).includes("Общая") || String(h).includes("Обнов"))
+        );
+      } else {
+        // убираем сами значения этих колонок (фикс по индексам)
+        filteredRow = row.slice(0,7); // первые 7 колонок (тикер → PnL $)
+      }
+    }
+
     const tr = document.createElement("tr");
-    row.forEach((cell, j)=>{
-      // ⚡ Убираем ненужные колонки
-      if (id==='orders'){
-        if (j===0 || j===1 || j===5) return; // ❌ Время, Категория, Статус
-      }
-      if (id==='portfolio'){
-        if (i===0 && (row[j].includes("Свобод") || row[j].includes("Общая") || row[j].includes("Обнов"))) return;
-      }
+    filteredRow.forEach((cell, j)=>{
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
-      let val   = String(cell).trim();
+      const val = String(cell).trim();
 
-      if (id==='orders' && i>0 && j===3) td.className = val==="BUY"?"buy":val==="SELL"?"sell":"";
+      if (id==='orders' && i>0 && filteredRow[2]==="BUY") td.className="buy";
+      if (id==='orders' && i>0 && filteredRow[2]==="SELL") td.className="sell";
       if (id==='portfolio' && i>0 && (j===5 || j===6)) td.className = clsPnL(val);
 
       td.textContent = val;
       tr.appendChild(td);
     });
     table.appendChild(tr);
-  });
+  });
 }
 
 async function loadData(){
