@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GT-Бот · Дашборд</title>
 
-  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GT-Бот">
@@ -14,56 +13,45 @@
   <style>
     :root{
       --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
-      --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
+      --green:#00c087; --red:#f6465d; --yellow:#f0b90b;
+      --border:#2a2f3a;
     }
-    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
-         background:var(--bg); color:var(--text);}
-    header{
-      position:sticky; top:0; background:#161a22; 
-      padding:6px; font-size:10px; border-bottom:1px solid var(--border);
-      box-shadow:0 1px 2px rgba(0,0,0,0.4); /* лёгкая тень */
+    body{
+      margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+      background:var(--bg); color:var(--text);
     }
-    .wrap{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
-    h1{font-size:13px; margin:0; color:var(--yellow); font-weight:700;}
-    .pill{
-      padding:2px 6px; border:1px solid var(--border); border-radius:6px;
-      font-size:9px; color:var(--muted); background:#1e222d;
+    header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px}
+    .wrap{display:flex; gap:8px; align-items:center}
+    h1{font-size:14px; margin:0; color:var(--yellow);}
+    .status-dot{
+      width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:4px;
     }
+    .online{background:var(--green);}
+    .offline{background:var(--red);}
+    .loading{background:var(--yellow);}
+    .pill{padding:1px 4px; border:1px solid var(--border); border-radius:4px; font-size:10px; color:var(--muted)}
     main{padding:6px; display:grid; gap:8px}
-    .card{
-      background:var(--card); border:1px solid var(--border);
-      border-radius:10px; overflow:hidden
-    }
-    .card h2{
-      margin:0; padding:6px; font-size:12px;
-      border-bottom:1px solid var(--border); color:var(--yellow)
-    }
+    .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
+    .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
     .grid{overflow-x:hidden}
-    table{
-      width:100%; border-collapse:collapse; font-size:7px; table-layout:fixed
-    }
-    th,td{
-      padding:2px 1px; border-bottom:1px solid var(--border);
-      text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis
-    }
-    th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
-    td{font-size:7px}
+    table{width:100%; border-collapse:collapse; font-size:8px; table-layout:fixed}
+    th,td{padding:3px 2px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap}
+    th{background:#1a1f28; color:#c8ccd3; font-size:8.5px; position:sticky; top:0}
+    td{font-size:8px}
     .buy{color:var(--green); font-weight:600}
     .sell{color:var(--red); font-weight:600}
     .pos{color:var(--green); font-weight:600}
     .neg{color:var(--red); font-weight:600}
     .muted{color:var(--muted)}
-    footer{padding:4px; font-size:8px; color:var(--muted); text-align:center}
+    footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
       <h1>GT-Бот</h1>
-      <span id="status" class="pill">Загрузка…</span>
-      <span id="pfFree" class="pill">USDT: —</span>
-      <span id="pfTotal" class="pill">Σ: —</span>
-      <span id="updated" class="pill">—</span>
+      <span id="statusDot" class="status-dot loading"></span>
+      <span id="statusText" class="pill">Загрузка…</span>
     </div>
   </header>
 
@@ -100,13 +88,8 @@ function renderTable(id, rows){
   rows.forEach((row, i)=>{
     const tr = document.createElement("tr");
     row.forEach((cell, j)=>{
-      // убираем ненужные столбцы
       if (id==='orders'){
-        if (j===0 || j===1 || j===5) return; // ❌ Время, Категория, Статус
-      }
-      if (id==='portfolio'){
-        if (i===0 && (j>=7)) return; // ❌ Свободные, Общая, Обновлено
-        if (i>0 && (j>=7)) return;
+        if (j===0 || j===1 || j===5) return; // убираем Время, Категорию, Статус
       }
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
@@ -123,8 +106,12 @@ function renderTable(id, rows){
 }
 
 async function loadData(){
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
   try{
-    document.getElementById('status').textContent="Обновляю…";
+    dot.className="status-dot loading";
+    text.textContent="Обновляю…";
+
     const res = await fetch(API_URL);
     const data = await res.json();
 
@@ -132,23 +119,11 @@ async function loadData(){
     renderTable("orders", data.openOrders);
 
     document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
-
-    // вытащим USDT/сумму из первых строк портфеля
-    try{
-      const scan = data.portfolio.slice(0,3);
-      for (const r of scan){
-        for (let i=0;i<r.length-1;i++){
-          const k = String(r[i]||'').toLowerCase();
-          if (k.includes('usdt')) document.getElementById('pfFree').textContent="USDT: "+r[i+1];
-          if (k.includes('общая стоимость')) document.getElementById('pfTotal').textContent="Σ: "+r[i+1];
-        }
-      }
-    }catch(_){}
-
-    document.getElementById('updated').textContent=new Date().toLocaleString();
-    document.getElementById('status').textContent="Онлайн";
+    dot.className="status-dot online";
+    text.textContent="Онлайн";
   }catch(e){
-    document.getElementById('status').textContent="Ошибка";
+    dot.className="status-dot offline";
+    text.textContent="Ошибка";
   }
 }
 
