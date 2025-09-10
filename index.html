@@ -85,29 +85,33 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
-
   rows.forEach((row, i)=>{
-    let filteredRow = row;
-
-    if (id === 'orders'){
-      // Оставляем только нужные 6 колонок
-      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]];
-    }
-
-    if (id === 'portfolio'){
-      // Оставляем только первые 7 колонок
-      filteredRow = row.slice(0,7);
-    }
-
     const tr = document.createElement("tr");
-    filteredRow.forEach((cell, j)=>{
+    row.forEach((cell, j)=>{
+      // ⚡ Убираем ненужные колонки
+      if (id==='orders'){
+        if (j===0 || j===1 || j===5) return; // ❌ Время, Категория, Статус
+      }
+      if (id==='portfolio'){
+        if (i===0 && (row[j].includes("Свобод") || row[j].includes("Общая") || row[j].includes("Обнов"))) return;
+      }
+
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
-      const val = String(cell).trim();
+      let val   = String(cell).trim();
 
-      if (id==='orders' && i>0 && filteredRow[1]==="BUY") td.className="buy";
-      if (id==='orders' && i>0 && filteredRow[1]==="SELL") td.className="sell";
-      if (id==='portfolio' && i>0 && (j===5 || j===6)) td.className = clsPnL(val);
+      // ✅ Подсветка только BUY/SELL
+      if (id==='orders' && i>0 && j===3){
+        td.className = val==="BUY" ? "buy" : val==="SELL" ? "sell" : "";
+      }
+
+      // ✅ Подсветка только PnL % и PnL $
+      if (id==='portfolio' && i>0 && (j===5 || j===6)){
+        const num = parseFloat(val.replace(',','.')); // исправляем , и пробелы
+        if (!isNaN(num) && num !== 0){
+          td.className = num > 0 ? "pos" : "neg";
+        }
+      }
 
       td.textContent = val;
       tr.appendChild(td);
@@ -115,7 +119,7 @@ function renderTable(id, rows){
     table.appendChild(tr);
   });
 }
-
+  
 async function loadData(){
   try{
     document.getElementById('status').textContent="Обновляю…";
