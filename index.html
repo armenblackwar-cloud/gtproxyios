@@ -11,34 +11,35 @@
   <meta name="apple-mobile-web-app-title" content="GT-Бот">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-<style>
-  :root{
-    --bg:#0f1115; --card:#171a21; --muted:#8a8f98; --text:#e9edf1; 
-    --green:#1ec28b; --red:#ff6b6b; --border:#2a2f3a; --accent:#4f86ff;
-  }
-  body{
-    margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
-    background:var(--bg); color:var(--text);
-  }
-  header{position:sticky; top:0; background:#1a1f28; padding:8px; font-size:14px}
-  .wrap{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  h1{font-size:16px; margin:0;}
-  .pill{padding:2px 6px; border:1px solid var(--border); border-radius:6px; font-size:11px; color:var(--muted)}
-  main{padding:10px; display:grid; gap:12px}
-  .card{background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden}
-  .card h2{margin:0; padding:10px; font-size:14px; border-bottom:1px solid var(--border)}
-  .meta{padding:6px 10px; font-size:11px; color:var(--muted); border-bottom:1px solid var(--border)}
-  .grid{overflow-x:hidden}  /* ❌ убираем прокрутку */
-  table{width:100%; border-collapse:collapse; font-size:11px; table-layout:auto} /* авто-ширина */
-  th,td{padding:6px 4px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap}
-  th{background:#1a1f28; color:#c8ccd3; position:sticky; top:0}
-  .buy{color:var(--green); font-weight:600}
-  .sell{color:var(--red); font-weight:600}
-  .pos{color:var(--green)}
-  .neg{color:var(--red)}
-  .muted{color:var(--muted)}
-  footer{padding:6px; font-size:11px; color:var(--muted); text-align:center}
-</style>
+  <style>
+    :root{
+      --bg:#0f1115; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
+      --green:#1ec28b; --red:#ff6b6b; --border:#2a2f3a;
+    }
+    body{
+      margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+      background:var(--bg); color:var(--text);
+    }
+    header{position:sticky; top:0; background:#1a1f28; padding:8px; font-size:14px}
+    .wrap{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    h1{font-size:16px; margin:0;}
+    .pill{padding:2px 6px; border:1px solid var(--border); border-radius:6px; font-size:11px; color:var(--muted)}
+    main{padding:10px; display:grid; gap:12px}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden}
+    .card h2{margin:0; padding:10px; font-size:14px; border-bottom:1px solid var(--border)}
+    .meta{padding:6px 10px; font-size:11px; color:var(--muted); border-bottom:1px solid var(--border)}
+    .grid{overflow-x:hidden}
+    table{width:100%; border-collapse:collapse; font-size:10px; table-layout:fixed}
+    th,td{padding:4px 2px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap}
+    th{background:#1a1f28; color:#c8ccd3; position:sticky; top:0}
+    td{font-size:10px}
+    .buy{color:var(--green); font-weight:600}
+    .sell{color:var(--red); font-weight:600}
+    .pos{color:var(--green); font-weight:600}
+    .neg{color:var(--red); font-weight:600}
+    .muted{color:var(--muted)}
+    footer{padding:6px; font-size:11px; color:var(--muted); text-align:center}
+  </style>
 </head>
 <body>
   <header>
@@ -65,7 +66,7 @@
     </section>
   </main>
 
-  <footer>Добавь на iPhone: Поделиться → «На экран Домой»</footer>
+  <footer>📱 Добавь на iPhone: Поделиться → «На экран Домой»</footer>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
@@ -103,10 +104,10 @@ function renderTable(id, rows){
 async function loadData(){
   try{
     document.getElementById('status').textContent="Обновляю…";
-    const res = await fetch(API_URL+"?only=portfolio");
+    const res = await fetch(API_URL);
     const data = await res.json();
     renderTable("portfolio", data.portfolio);
-    if (data.openOrders) renderTable("orders", data.openOrders);
+    renderTable("orders", data.openOrders);
     document.getElementById('pfFree').textContent = "см. таблицу";
     document.getElementById('pfTotal').textContent= "см. таблицу";
     document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
