@@ -9,35 +9,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GT-Бот">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <style>
     :root{
       --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
       --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
-      background:var(--bg); color:var(--text);
-      padding-bottom: env(safe-area-inset-bottom);
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+      background:var(--bg);
+      color:var(--text);
+      padding-top: env(safe-area-inset-top);
     }
-    header{
-      position:sticky; top:0; z-index:10;
-      background:#1a1f28;
-      padding:6px; padding-top:calc(6px + env(safe-area-inset-top));
-      font-size:11px; border-bottom:1px solid var(--border);
-    }
+    header{position:sticky; top:0; background:#1a1f28; padding:10px 6px; font-size:11px}
     .wrap{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     h1{font-size:14px; margin:0; color:var(--yellow);}
-    .pill{
-      padding:1px 6px; border-radius:10px; font-size:10px;
-      font-weight:600; min-width:55px; text-align:center;
-    }
+    .pill{padding:1px 6px; border-radius:10px; font-size:10px; font-weight:600; min-width:55px; text-align:center}
     .pill.online{background:#193e2d; color:var(--green);}
     .pill.offline{background:#3e1919; color:var(--red);}
-    .pill.secondary{background:#242a33; color:#c8ccd3; border:1px solid var(--border)}
     main{padding:6px; display:grid; gap:8px}
     .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
@@ -51,31 +42,6 @@
     .neg{color:var(--red); font-weight:600}
     .muted{color:var(--muted)}
     footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
-
-    /* 🔒 ЛОК-ЭКРАН */
-    .lock{
-      position:fixed; inset:0; z-index:9999;
-      display:flex; align-items:center; justify-content:center;
-      background:rgba(10,10,12,.92);
-      backdrop-filter: blur(8px);
-    }
-    .lock .panel{
-      width:min(92vw, 360px);
-      background:#171a21; border:1px solid var(--border); border-radius:12px;
-      padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.3);
-    }
-    .lock h3{margin:0 0 10px; font-size:16px; color:var(--yellow);}
-    .lock label{display:block; font-size:12px; color:#c8ccd3; margin-bottom:6px}
-    .lock input{
-      width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
-      background:#121418; color:var(--text); font-size:14px; outline:none;
-    }
-    .lock button{
-      margin-top:10px; width:100%; padding:10px 12px; border:0; border-radius:10px;
-      background:var(--yellow); color:#1a1f28; font-weight:700; cursor:pointer;
-    }
-    .lock .err{margin-top:8px; color:var(--red); font-size:12px; min-height:1em}
-    .hidden{display:none !important;}
   </style>
 </head>
 <body>
@@ -86,11 +52,11 @@
       <span id="pfFree" class="pill">USDT: —</span>
       <span id="pfTotal" class="pill">∑: —</span>
       <span id="updated" class="pill">—</span>
-      <button id="logoutBtn" class="pill secondary">Выйти</button>
+      <button id="logoutBtn" class="pill" style="background:#333;cursor:pointer;">🚪 Выйти</button>
     </div>
   </header>
 
-  <main id="app">
+  <main>
     <section class="card">
       <h2>📊 Портфель</h2>
       <div class="grid"><table id="portfolio"></table></div>
@@ -104,43 +70,29 @@
 
   <footer>📱 Добавь на iPhone: Поделиться → «На экран Домой»</footer>
 
-  <!-- 🔒 Оверлей авторизации -->
-  <div id="lock" class="lock hidden">
-    <div class="panel">
-      <h3>Доступ к дашборду</h3>
-      <label for="pwd">Пароль</label>
-      <input id="pwd" type="password" autocomplete="current-password" inputmode="latin-prose" />
-      <button id="loginBtn">Войти</button>
-      <div id="err" class="err"></div>
-    </div>
-  </div>
-
 <script>
+// ===== ПРОСТАЯ ЗАЩИТА ПАРОЛЕМ =====
+const PASSWORD = "1234";       // 🔑 поменяй пароль тут
+const STORAGE_KEY = "gtbot_auth";
+
+if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+  const input = prompt("Введите пароль для доступа:");
+  if (input === PASSWORD) {
+    localStorage.setItem(STORAGE_KEY, "ok");
+  } else {
+    document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px'>⛔ Доступ запрещён</h2>";
+    throw new Error("Access denied");
+  }
+}
+
 const API_URL = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
 
-/* ====== ПАРОЛЬ (ПОМЕНЯЙ) ====== */
-const PASS = "GT777";                 // ← задай свой пароль
-const AUTH_KEY = "gtbot_auth_v2";     // новый ключ, чтобы заново спросило пароль
-let refreshTimer = null;
-
-/* ====== УТИЛЫ ====== */
-const $ = sel => document.querySelector(sel);
-function setStatusOnline(){
-  const s = $('#status');
-  s.textContent = "Онлайн"; s.className = "pill online";
-}
-function setStatusOffline(){
-  const s = $('#status');
-  s.textContent = "Оффлайн"; s.className = "pill offline";
-}
 function clsPnL(v){
-  // красим любое значение (включая 0) — 0 будет зелёным как "не минус"
-  const x = parseFloat(String(v).replace('%','').replace(',','.'));
-  if (!isFinite(x)) return '';
-  return x >= 0 ? 'pos' : 'neg';
+  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
+  if (isNaN(num) || num === 0) return 'muted';
+  return num > 0 ? 'pos' : 'neg';
 }
 
-/* ====== РЕНДЕР ТАБЛИЦ ====== */
 function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
@@ -151,35 +103,16 @@ function renderTable(id, rows){
 
   rows.forEach((row, i)=>{
     let filteredRow = row;
-
-    if (id === 'orders'){
-      // оставляем только: Символ, Сторона, Тип ордера, Цена, Кол-во, Остаток
-      // индексы исходной таблицы: [2,3,4,6,8,9]
-      filteredRow = [row[2], row[3], row[4], row[6], row[8], row[9]];
-    }
-
-    if (id === 'portfolio'){
-      // только первые 7 колонок
-      filteredRow = row.slice(0,7);
-    }
+    if (id === 'orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
+    if (id === 'portfolio'){ filteredRow = row.slice(0,7); }
 
     const tr = document.createElement("tr");
     filteredRow.forEach((cell, j)=>{
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
       const val = String(cell).trim();
-
-      // 🔴 В ОРДЕРАХ красим ТОЛЬКО колонку SIDE (индекс 1 в filteredRow)
-      if (id==='orders' && i>0 && j===1){
-        if (val==="BUY")  td.className="buy";
-        if (val==="SELL") td.className="sell";
-      }
-
-      // 🟢 В ПОРТФЕЛЕ красим PnL % и PnL $ (индексы 5 и 6 в filteredRow)
-      if (id==='portfolio' && i>0 && (j===5 || j===6)){
-        td.className = clsPnL(val);
-      }
-
+      if (id==='orders' && i>0 && j===1){ td.className = val==="BUY"?"buy":val==="SELL"?"sell":""; }
+      if (id==='portfolio' && i>0 && (j===5 || j===6)){ td.className = clsPnL(val); }
       td.textContent = val;
       tr.appendChild(td);
     });
@@ -187,88 +120,44 @@ function renderTable(id, rows){
   });
 }
 
-/* ====== ЗАГРУЗКА ДАННЫХ ====== */
 async function loadData(){
   try{
-    $('#status').textContent="Обновляю…";
-    $('#status').className="pill";
-
-    const res = await fetch(API_URL, { cache:"no-store" });
-    if (!res.ok) throw new Error("HTTP "+res.status);
+    document.getElementById('status').textContent="Обновляю…";
+    document.getElementById('status').className="pill";
+    const res = await fetch(API_URL);
     const data = await res.json();
-
     renderTable("portfolio", data.portfolio);
     renderTable("orders", data.openOrders);
-
-    // счётчик ордеров
-    $('#ooCount').textContent = Math.max(0, (data.openOrders?.length||1)-1);
-
-    // сводка для шапки
-    let free = "—", total="—";
+    document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
+    let free="—", total="—";
     try{
       const scan = data.portfolio.slice(0,3);
       for (const r of scan){
         for (let i=0;i<r.length-1;i++){
-          const k = String(r[i]||'').toLowerCase();
-          if (k.includes('свободные usdt')) free = r[i+1];
-          if (k.includes('общая стоимость портфеля')) total = r[i+1];
+          const k=String(r[i]||'').toLowerCase();
+          if (k.includes('свободные usdt')) free=r[i+1];
+          if (k.includes('общая стоимость портфеля')) total=r[i+1];
         }
       }
     }catch(_){}
-    $('#pfFree').textContent  = "USDT: "+free;
-    $('#pfTotal').textContent = "∑: "+total;
-
-    $('#updated').textContent = new Date().toLocaleString('ru-RU');
-
-    setStatusOnline();
+    document.getElementById('pfFree').textContent="USDT: "+free;
+    document.getElementById('pfTotal').textContent="∑: "+total;
+    document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
+    document.getElementById('status').textContent="Онлайн";
+    document.getElementById('status').className="pill online";
   }catch(e){
-    setStatusOffline();
+    document.getElementById('status').textContent="Оффлайн";
+    document.getElementById('status').className="pill offline";
   }
 }
+loadData();
+setInterval(loadData, 60000);
 
-/* ====== АВТО-ОБНОВЛЕНИЕ ====== */
-function startAuto(){
-  if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(loadData, 60000);
-}
-
-/* ====== ЛОГИН/ЛОГАУТ ====== */
-function isAuthed(){ return localStorage.getItem(AUTH_KEY) === '1'; }
-function showLock(){ $('#lock').classList.remove('hidden'); }
-function hideLock(){ $('#lock').classList.add('hidden'); }
-function tryLogin(){
-  const v = $('#pwd').value.trim();
-  if (v === PASS){
-    localStorage.setItem(AUTH_KEY, '1');
-    $('#err').textContent = "";
-    hideLock();
-    loadData();
-    startAuto();
-  } else {
-    $('#err').textContent = "Неверный пароль";
-  }
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  // обработчики логина/логаута
-  $('#loginBtn').addEventListener('click', tryLogin);
-  $('#pwd').addEventListener('keydown', (e)=>{ if (e.key === 'Enter') tryLogin(); });
-  $('#logoutBtn').addEventListener('click', ()=>{
-    localStorage.removeItem(AUTH_KEY);
-    location.reload();
-  });
-
-  // первый запуск
-  if (isAuthed()){
-    hideLock();
-    loadData();
-    startAuto();
-  } else {
-    setStatusOffline();
-    showLock();
-    setTimeout(()=>$('#pwd').focus(), 50);
-  }
-});
+// 🚪 Кнопка выхода
+document.getElementById('logoutBtn').onclick=()=>{
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+};
 </script>
 </body>
 </html>
