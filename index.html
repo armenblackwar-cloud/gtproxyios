@@ -21,10 +21,10 @@
       background:var(--bg); color:var(--text);
     }
     header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px}
-    .wrap{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .wrap{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     h1{font-size:14px; margin:0; color:var(--yellow);}
     .pill{
-      padding:1px 6px; border-radius:10px; font-size:10px; 
+      padding:1px 6px; border-radius:10px; font-size:10px;
       font-weight:600; min-width:55px; text-align:center;
     }
     .pill.online{background:#193e2d; color:var(--green);}
@@ -90,20 +90,13 @@ function renderTable(id, rows){
     let filteredRow = row;
 
     if (id === 'orders'){
-      // оставляем: Монета, Сторона, Тип, Цена, Кол-во, Остаток
-      filteredRow = row.filter((_, j)=> ![0,1,5].includes(j));
+      // Оставляем только нужные 6 колонок
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]];
     }
 
     if (id === 'portfolio'){
-      if (i === 0){
-        // убираем заголовки «Свободные», «Общая», «Обновлено»
-        filteredRow = row.filter(h =>
-          !(String(h).includes("Свобод") || String(h).includes("Общая") || String(h).includes("Обнов"))
-        );
-      } else {
-        // оставляем только первые 7 колонок (Тикер → PnL $)
-        filteredRow = row.slice(0,7);
-      }
+      // Оставляем только первые 7 колонок
+      filteredRow = row.slice(0,7);
     }
 
     const tr = document.createElement("tr");
@@ -134,7 +127,7 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
 
-    // достаем сводку
+    // Сводка
     let free = "—", total="—";
     try{
       const scan = data.portfolio.slice(0,3);
