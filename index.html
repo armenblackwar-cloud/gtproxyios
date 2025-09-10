@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GT-Бот · Дашборд</title>
 
-  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GT-Бот">
@@ -21,7 +20,7 @@
       background:var(--bg); color:var(--text);
     }
     header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px}
-    .wrap{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .wrap{display:flex; gap:8px; align-items:center}
     h1{font-size:14px; margin:0; color:var(--yellow);}
     .pill{padding:1px 4px; border:1px solid var(--border); border-radius:4px; font-size:10px; color:var(--muted)}
     main{padding:6px; display:grid; gap:8px}
@@ -45,9 +44,6 @@
     <div class="wrap">
       <h1>GT-Бот</h1>
       <span id="status" class="pill">Загрузка…</span>
-      <span id="pfFree" class="pill">USDT: —</span>
-      <span id="pfTotal" class="pill">Σ: —</span>
-      <span id="updated" class="pill">—</span>
     </div>
   </header>
 
@@ -84,9 +80,9 @@ function renderTable(id, rows){
   rows.forEach((row, i)=>{
     const tr = document.createElement("tr");
     row.forEach((cell, j)=>{
-      // ⚡ убираем ненужные колонки для ордеров
+      // ⚡ Убираем ненужные колонки
       if (id==='orders'){
-        if (j===1 || j===5) return; // скрываем "Категория" и "Статус"
+        if (j===0 || j===1 || j===5) return; // ❌ убираем Время, Категорию и Статус
       }
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
@@ -109,10 +105,7 @@ async function loadData(){
     const data = await res.json();
     renderTable("portfolio", data.portfolio);
     renderTable("orders", data.openOrders);
-    document.getElementById('pfFree').textContent = "USDT: см.таблицу";
-    document.getElementById('pfTotal').textContent= "Σ: см.таблицу";
     document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
-    document.getElementById('updated').textContent= new Date().toLocaleTimeString();
     document.getElementById('status').textContent="Онлайн";
   }catch(e){
     document.getElementById('status').textContent="Ошибка";
