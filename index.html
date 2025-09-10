@@ -2,9 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes" />
   <title>GT-Бот · Дашборд</title>
 
+  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GT-Бот">
@@ -15,18 +16,20 @@
       --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
       --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
     }
+    *{box-sizing:border-box}
     body{
       margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
       background:var(--bg); color:var(--text);
     }
-    header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px}
+    header{position:sticky; top:0; background:#10141b; padding:6px; font-size:11px; border-bottom:1px solid var(--border)}
     .wrap{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
     h1{font-size:14px; margin:0; color:var(--yellow);}
-    .pill{padding:1px 4px; border:1px solid var(--border); border-radius:4px; font-size:10px; color:var(--muted)}
+    .pill{padding:2px 6px; border:1px solid var(--border); border-radius:6px; font-size:10px; color:var(--muted)}
     main{padding:6px; display:grid; gap:8px}
-    .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden}
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
     .grid{overflow-x:hidden}
+    /* таблицы компактные, чтобы влезать в вертикали */
     table{width:100%; border-collapse:collapse; font-size:8.5px; table-layout:fixed}
     th,td{padding:3px 2px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap}
     th{background:#1a1f28; color:#c8ccd3; font-size:9px; position:sticky; top:0}
@@ -36,15 +39,15 @@
     .pos{color:var(--green); font-weight:600}
     .neg{color:var(--red); font-weight:600}
     .muted{color:var(--muted)}
-    footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
+    footer{padding:6px; font-size:9px; color:var(--muted); text-align:center}
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
       <h1>GT-Бот</h1>
-      <span id="status" class="pill">Загрузка…</span>
-      <span id="pfFree" class="pill">USDT: —</span>
+      <span id="status"  class="pill">Загрузка…</span>
+      <span id="pfFree"  class="pill">USDT: —</span>
       <span id="pfTotal" class="pill">Σ: —</span>
       <span id="updated" class="pill">—</span>
     </div>
@@ -67,6 +70,14 @@
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
 
+/* какие колонки показывать */
+const KEEP = {
+  // Портфель: берем только первые 7 столбцов (A..G)
+  portfolio: [0,1,2,3,4,5,6],
+  // Ордера: оставляем Монета(2), Сторона(3), Тип(4), Цена(6), Кол-во(8), Остаток(9)
+  orders:    [2,3,4,6,8,9]
+};
+
 function clsPnL(v){
   const x = parseFloat(v);
   if (isNaN(x) || x===0) return 'muted';
@@ -81,51 +92,71 @@ function renderTable(id, rows){
     return;
   }
 
+  const keepIdx = KEEP[id];
+
   rows.forEach((row, i)=>{
-    const textRow = row.join(" ").toLowerCase();
-    if (id==='portfolio' && i>0 &&
-        (textRow.includes("свободные usdt") || textRow.includes("общая стоимость") || textRow.includes("обновлено"))){
-      return; // ❌ эти строки не показываем
+    // из портфеля не показываем служебные строки
+    if (id==='portfolio' && i>0){
+      const txt = row.join(" ").toLowerCase();
+      if (txt.includes("свободные usdt") || txt.includes("общая стоимость") || txt.includes("обновлено")) return;
     }
 
     const tr = document.createElement("tr");
-    row.forEach((cell, j)=>{
-      if (id==='orders'){
-        if (j===0 || j===1 || j===5) return; // ❌ убираем Время, Категорию и Статус
-      }
+
+    keepIdx.forEach((origJ, newJ)=>{
       const tag = i===0 ? "th" : "td";
       const td  = document.createElement(tag);
-      let val   = String(cell).trim();
+      const val = row[origJ] ?? "";
 
-      if (id==='orders' && i>0 && j===3) td.className = val==="BUY"?"buy":val==="SELL"?"sell":"";
-      if (id==='portfolio' && i>0 && (j===5 || j===6)) td.className = clsPnL(val);
+      // Подсветки
+      if (id==='orders' && i>0 && newJ===1){           // Сторона после фильтра — индекс 1
+        const side = String(val).trim().toUpperCase();
+        td.className = side==="BUY" ? "buy" : side==="SELL" ? "sell" : "";
+      }
+      if (id==='portfolio' && i>0 && (newJ===5 || newJ===6)){ // PnL % и $ — индексы 5 и 6 после фильтра
+        td.className = clsPnL(val);
+      }
 
-      td.textContent = val;
+      td.textContent = String(val).trim();
       tr.appendChild(td);
     });
+
     table.appendChild(tr);
   });
+}
+
+function extractTopBadges(portfolio){
+  try{
+    const scan = portfolio.slice(0,5);
+    let free=null, total=null, upd=null;
+    for (const r of scan){
+      for (let i=0;i<r.length-1;i++){
+        const k = String(r[i]||'').toLowerCase();
+        if (k.includes('свободные usdt')) free  = r[i+1];
+        if (k.includes('общая стоимость')) total = r[i+1];
+        if (k.includes('обновлено'))       upd   = r[i+1];
+      }
+    }
+    if (free  != null) document.getElementById('pfFree').textContent  = "USDT: " + free;
+    if (total != null) document.getElementById('pfTotal').textContent = "Σ: " + total;
+    if (upd   != null) document.getElementById('updated').textContent = upd;
+  }catch(_){}
 }
 
 async function loadData(){
   try{
     document.getElementById('status').textContent="Обновляю…";
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL, {cache:"no-store"});
     const data = await res.json();
 
-    renderTable("portfolio", data.portfolio);
-    renderTable("orders", data.openOrders);
+    const portfolio = Array.isArray(data.portfolio)  ? data.portfolio  : [];
+    const orders    = Array.isArray(data.openOrders) ? data.openOrders : [];
 
-    document.getElementById('ooCount').textContent= (data.openOrders?.length||1)-1;
+    renderTable("portfolio", portfolio);
+    renderTable("orders", orders);
 
-    // 📌 вытащим данные из первых строк "Портфеля"
-    const headRows = data.portfolio.slice(0,5);
-    headRows.forEach(r=>{
-      const txt = r.join(" ").toLowerCase();
-      if (txt.includes("свободные usdt")) document.getElementById('pfFree').textContent = "USDT: "+r[1];
-      if (txt.includes("общая стоимость")) document.getElementById('pfTotal').textContent = "Σ: "+r[1];
-      if (txt.includes("обновлено")) document.getElementById('updated').textContent = r[1];
-    });
+    document.getElementById('ooCount').textContent = Math.max(0, orders.length-1);
+    extractTopBadges(portfolio);
 
     document.getElementById('status').textContent="Онлайн";
   }catch(e){
@@ -134,7 +165,7 @@ async function loadData(){
 }
 
 loadData();
-setInterval(loadData, 60000); // автообновление раз в минуту
+setInterval(loadData, 60000);
 </script>
 </body>
 </html>
