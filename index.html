@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <!-- ✅ Масштабирование под экран и zoom -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>GT-Bot Портфель</title>
   <style>
@@ -17,7 +16,7 @@
       margin: 15px 0 8px;
       font-size: 18px;
       text-align: center;
-      color: #f0b90b; /* Bybit-жёлтый */
+      color: #f0b90b;
     }
     .grid {
       background: #1c1c20;
@@ -29,25 +28,24 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 13px;
     }
     th, td {
       padding: 6px 8px;
       text-align: center;
       border-bottom: 1px solid #2a2a2f;
+      white-space: nowrap;
     }
     th {
       background: #26262b;
       color: #f0b90b;
       font-weight: 600;
+      position: sticky;
+      top: 0;
     }
-    tr:hover {
-      background: #2a2a30;
-    }
-    /* ✅ Подсветка BUY / SELL */
+    tr:hover { background: #2a2a30; }
     .buy { color: #00c087; font-weight: bold; }
     .sell { color: #f6465d; font-weight: bold; }
-    /* ✅ Подсветка PnL */
     .pnl-pos { color: #00c087; font-weight: bold; }
     .pnl-neg { color: #f6465d; font-weight: bold; }
   </style>
@@ -62,15 +60,25 @@
   <script>
     async function loadData() {
       try {
-        const url = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec"; // 🔥 вставлен твой URL
+        const url = "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec";
         const res = await fetch(url);
-        const data = await res.json();
+        const text = await res.text();
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          document.getElementById('portfolio').innerText = 'Ошибка: ' + text.slice(0, 200);
+          document.getElementById('orders').innerText = 'Ошибка: ' + text.slice(0, 200);
+          return;
+        }
 
         renderTable('portfolio', data.portfolio);
         renderTable('orders', data.openOrders);
+
       } catch (e) {
-        document.getElementById('portfolio').innerText = 'Ошибка загрузки';
-        document.getElementById('orders').innerText = 'Ошибка загрузки';
+        document.getElementById('portfolio').innerText = 'Ошибка загрузки: ' + e;
+        document.getElementById('orders').innerText = 'Ошибка загрузки: ' + e;
       }
     }
 
@@ -90,11 +98,9 @@
           let cls = '';
           const val = String(cell).trim().toUpperCase();
 
-          // ✅ BUY / SELL подсветка
           if (val === 'BUY') cls = 'buy';
           if (val === 'SELL') cls = 'sell';
 
-          // ✅ PNL (для портфеля: столбцы F и G)
           if (containerId === 'portfolio' && (j === 5 || j === 6)) {
             const num = parseFloat(cell);
             if (!isNaN(num) && num !== 0) cls = num > 0 ? 'pnl-pos' : 'pnl-neg';
@@ -105,7 +111,6 @@
         html += '</tr>';
       }
       html += '</tbody></table>';
-
       document.getElementById(containerId).innerHTML = html;
     }
 
