@@ -87,23 +87,22 @@ function renderTable(id, rows){
   }
 
   rows.forEach((row, i)=>{
-    // ⚡ фильтруем ненужные колонки
     let filteredRow = row;
 
     if (id === 'orders'){
-      // убираем: Время (0), Категория (1), Статус (5)
+      // оставляем: Монета, Сторона, Тип, Цена, Кол-во, Остаток
       filteredRow = row.filter((_, j)=> ![0,1,5].includes(j));
     }
 
     if (id === 'portfolio'){
       if (i === 0){
-        // убираем заголовки: Свободные, Общая, Обновлено
+        // убираем заголовки «Свободные», «Общая», «Обновлено»
         filteredRow = row.filter(h =>
           !(String(h).includes("Свобод") || String(h).includes("Общая") || String(h).includes("Обнов"))
         );
       } else {
-        // убираем сами значения этих колонок (фикс по индексам)
-        filteredRow = row.slice(0,7); // первые 7 колонок (тикер → PnL $)
+        // оставляем только первые 7 колонок (Тикер → PnL $)
+        filteredRow = row.slice(0,7);
       }
     }
 
@@ -113,21 +112,22 @@ function renderTable(id, rows){
       const td  = document.createElement(tag);
       const val = String(cell).trim();
 
-      if (id==='orders' && i>0 && filteredRow[2]==="BUY") td.className="buy";
-      if (id==='orders' && i>0 && filteredRow[2]==="SELL") td.className="sell";
+      if (id==='orders' && i>0 && filteredRow[1]==="BUY") td.className="buy";
+      if (id==='orders' && i>0 && filteredRow[1]==="SELL") td.className="sell";
       if (id==='portfolio' && i>0 && (j===5 || j===6)) td.className = clsPnL(val);
 
       td.textContent = val;
       tr.appendChild(td);
     });
     table.appendChild(tr);
-  });
+  });
 }
 
 async function loadData(){
   try{
     document.getElementById('status').textContent="Обновляю…";
     document.getElementById('status').className="pill";
+
     const res = await fetch(API_URL);
     const data = await res.json();
     renderTable("portfolio", data.portfolio);
