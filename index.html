@@ -192,14 +192,14 @@ async function loadData(){
   }
 }
 
+loadData();
+setInterval(loadData, 60000);
+
 // 🚪 Кнопка выхода
 document.getElementById('logoutBtn').onclick = () => {
   localStorage.removeItem('gtbot_auth');
   location.reload();
 };
-
-loadData();
-setInterval(loadData, 60000);
 </script>
 </body>
 </html>
