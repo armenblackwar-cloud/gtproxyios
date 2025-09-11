@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>GT-Бот · Дашборд</title>
+  <title>GT · Dashboard</title>
   <style>
     :root{
       --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
@@ -53,15 +53,14 @@
 <body>
 
 <div id="startScreen">
-  <h1>🚀 GT-Бот</h1>
-  <button class="startBtn" onclick="chooseMode('kripto')">GT-KRIPTO</button>
+  <h1>🚀 GT</h1>
+  <button class="startBtn" onclick="chooseMode('kripto')">GT-CRYPTO</button>
   <button class="startBtn" onclick="chooseMode('invest')">GT-INVEST</button>
 </div>
 
 <div id="app" style="display:none">
   <header>
-    <h1>GT-Бот</h1>
-    <span id="modePill" class="pill">—</span>
+    <h1 id="modePill">—</h1>
     <span id="status" class="pill">—</span>
     <span id="pfFree" class="pill">—</span>
     <span id="pfTotal" class="pill">∑: —</span>
@@ -117,7 +116,8 @@ function chooseMode(mode){
 }
 
 function updateModePill(){
-  document.getElementById("modePill").textContent = currentMode==="kripto"?"GT-KRIPTO":"GT-INVEST";
+  document.getElementById("modePill").textContent =
+    currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
 }
 
 // ===== Рендер =====
@@ -156,6 +156,17 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
+
+        // формат чисел
+        if(!isNaN(val) && val!=="" && tag==="td"){
+          const num = parseFloat(val);
+          if(Math.abs(num) > 1e6){
+            val = num.toFixed(0);
+          } else {
+            val = num.toFixed(2);
+          }
+        }
+
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
         if (id==='portfolio' && i>0 && (j===5||j===6)){ td.className=clsPnL(val); }
         td.textContent=val;
