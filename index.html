@@ -62,8 +62,10 @@
   <header>
     <h1 id="modePill">—</h1>
     <span id="status" class="pill">—</span>
-    <span id="pfFree" class="pill">—</span>
-    <span id="pfTotal" class="pill">∑: —</span>
+    <span id="pfFree" class="pill">Свободные: —</span>
+    <span id="pfPnlPct" class="pill">PNL %: —</span>
+    <span id="pfPnlRub" class="pill">PNL ₽: —</span>
+    <span id="pfTotal" class="pill">Объем ₽: —</span>
     <span id="updated" class="pill">—</span>
     <button id="switchBtn" class="pill">🔄 Переключить</button>
     <button id="logoutBtn" class="pill logout">🚪 Выйти</button>
@@ -127,6 +129,12 @@ function clsPnL(v){
   return num > 0 ? 'pos' : 'neg';
 }
 
+function formatNum(val){
+  const num = parseFloat(val);
+  if(Number.isNaN(num)) return val;
+  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
+}
+
 function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
@@ -138,7 +146,7 @@ function renderTable(id, rows){
   rows.forEach((row,i)=>{
     let filteredRow = row;
     if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
-    if (id==='portfolio'){ filteredRow = row.slice(0,7); }
+    if (id==='portfolio'){ filteredRow = row; }
 
     const firstCell = String(filteredRow[0]||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
@@ -157,18 +165,12 @@ function renderTable(id, rows){
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
 
-        // формат чисел
-        if(!isNaN(val) && val!=="" && tag==="td"){
-          const num = parseFloat(val);
-          if(Math.abs(num) > 1e6){
-            val = num.toFixed(0);
-          } else {
-            val = num.toFixed(2);
-          }
+        if(tag==="td" && val!==""){
+          if(!isNaN(val)) val = formatNum(val);
         }
 
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
-        if (id==='portfolio' && i>0 && (j===5||j===6)){ td.className=clsPnL(val); }
+        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
         td.textContent=val;
         tr.appendChild(td);
       });
@@ -191,24 +193,24 @@ async function loadData(){
 
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    let free="—", total="—";
+    let free="—", total="—", pnlRub="—", pnlPct="—";
     try{
-      const scan = data.portfolio.slice(0,3);
+      const scan = data.portfolio.slice(0,5); // первые строки портфеля
       for (const r of scan){
         for (let i=0;i<r.length-1;i++){
           const k=String(r[i]||'').toLowerCase();
-          if (k.includes('свободные usdt') || k.includes('свободные рубли')) free=r[i+1];
-          if (k.includes('общая стоимость портфеля')) total=r[i+1];
+          if (k.includes('свободные')) free = r[i+1];
+          if (k.includes('общая стоимость портфеля')) total = r[i+1];
+          if (k.includes('общий pnl ₽')) pnlRub = r[i+1];
+          if (k.includes('общий pnl %')) pnlPct = r[i+1];
         }
       }
     }catch(_){}
 
-    if(currentMode==="kripto"){
-      document.getElementById('pfFree').textContent="USDT: "+free;
-    }else{
-      document.getElementById('pfFree').textContent="₽: "+free;
-    }
-    document.getElementById('pfTotal').textContent="∑: "+total;
+    document.getElementById('pfFree').textContent = "Свободные: " + free;
+    document.getElementById('pfPnlRub').textContent = "PNL ₽: " + pnlRub;
+    document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
+    document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
 
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
