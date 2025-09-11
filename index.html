@@ -21,14 +21,28 @@
     .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
     .grid{overflow-x:hidden}
-    table{width:100%; border-collapse:collapse; font-size:7.5px; table-layout:fixed}
-    th,td{padding:3px 2px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap}
+    table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
+    th,td{
+      padding:3px 2px;
+      border-bottom:1px solid var(--border);
+      text-align:center;
+      white-space:normal;   
+      word-wrap:break-word; 
+      max-width:80px;       
+    }
     th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
     .buy{color:var(--green); font-weight:600}
     .sell{color:var(--red); font-weight:600}
     .pos{color:var(--green); font-weight:600}
     .neg{color:var(--red); font-weight:600}
     .muted{color:var(--muted)}
+    .sectionRow {
+      text-align:center;
+      font-weight:700;
+      color:var(--yellow);
+      background:#222;
+      padding:4px;
+    }
     footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
 
     /* стартовое меню */
@@ -49,7 +63,7 @@
     <h1>GT-Бот</h1>
     <span id="modePill" class="pill">—</span>
     <span id="status" class="pill">—</span>
-    <span id="pfFree" class="pill">USDT: —</span>
+    <span id="pfFree" class="pill">—</span>
     <span id="pfTotal" class="pill">∑: —</span>
     <span id="updated" class="pill">—</span>
     <button id="switchBtn" class="pill">🔄 Переключить</button>
@@ -84,84 +98,6 @@ if (localStorage.getItem(STORAGE_KEY) !== "ok") {
     throw new Error("Access denied");
   }
 }
-function renderTable(id, rows){
-  const table = document.getElementById(id);
-  table.innerHTML = "";
-  if (!rows || !rows.length){
-    table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
-    return;
-  }
-
-  rows.forEach((row,i)=>{
-    let filteredRow = row;
-    if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
-    if (id==='portfolio'){ filteredRow = row.slice(0,7); }
-
-    const tr = document.createElement("tr");
-    filteredRow.forEach((cell,j)=>{
-      const tag = i===0?"th":"td";
-      const td=document.createElement(tag);
-      let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-      if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
-      if (id==='portfolio' && i>0 && (j===5||j===6)){ td.className=clsPnL(val); }
-      td.textContent=val;
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
-}
-
-async function loadData(){
-  if (!currentMode) return;
-  try{
-    document.getElementById('status').textContent="Обновляю…";
-    document.getElementById('status').className="pill";
-    const res = await fetch(API_URLS[currentMode]);
-    const data = await res.json();
-
-    renderTable("portfolio", data.portfolio);
-    renderTable("orders", data.openOrders);
-
-    document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
-
-    let free="—", total="—";
-    try{
-      const scan = data.portfolio.slice(0,3);
-      for (const r of scan){
-        for (let i=0;i<r.length-1;i++){
-          const k=String(r[i]||'').toLowerCase();
-          if (k.includes('свободные usdt') || k.includes('свободные рубли')) free=r[i+1];
-          if (k.includes('общая стоимость портфеля')) total=r[i+1];
-        }
-      }
-    }catch(_){}
-
-    // меняем подписи валюты в зависимости от режима
-    if(currentMode==="kripto"){
-      document.getElementById('pfFree').textContent="USDT: "+free;
-    }else{
-      document.getElementById('pfFree').textContent="₽: "+free;
-    }
-    document.getElementById('pfTotal').textContent="∑: "+total;
-
-    document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
-    document.getElementById('status').textContent="Онлайн";
-    document.getElementById('status').className="pill online";
-  }catch(e){
-    document.getElementById('status').textContent="Оффлайн";
-    document.getElementById('status').className="pill offline";
-  }
-}
-
-table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
-th,td{
-  padding:3px 2px;
-  border-bottom:1px solid var(--border);
-  text-align:center;
-  white-space:normal;   /* разрешаем перенос */
-  word-wrap:break-word; /* ломаем длинные слова */
-  max-width:80px;       /* ограничим ширину ячеек */
-}
 
 // ====== API для разных режимов ======
 const API_URLS = {
@@ -190,6 +126,7 @@ function clsPnL(v){
   if (isNaN(num) || num === 0) return 'muted';
   return num > 0 ? 'pos' : 'neg';
 }
+
 function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
@@ -197,20 +134,34 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
+
   rows.forEach((row,i)=>{
     let filteredRow = row;
     if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
     if (id==='portfolio'){ filteredRow = row.slice(0,7); }
+
+    const firstCell = String(filteredRow[0]||"").toLowerCase();
+    const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
+
     const tr = document.createElement("tr");
-    filteredRow.forEach((cell,j)=>{
-      const tag = i===0?"th":"td";
-      const td=document.createElement(tag);
-      const val=String(cell).trim();
-      if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
-      if (id==='portfolio' && i>0 && (j===5||j===6)){ td.className=clsPnL(val); }
-      td.textContent=val;
+
+    if(isSection){
+      const td = document.createElement("td");
+      td.colSpan = filteredRow.length;
+      td.textContent = row[0];
+      td.className = "sectionRow";
       tr.appendChild(td);
-    });
+    } else {
+      filteredRow.forEach((cell,j)=>{
+        const tag = i===0?"th":"td";
+        const td=document.createElement(tag);
+        let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
+        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+        if (id==='portfolio' && i>0 && (j===5||j===6)){ td.className=clsPnL(val); }
+        td.textContent=val;
+        tr.appendChild(td);
+      });
+    }
     table.appendChild(tr);
   });
 }
@@ -223,22 +174,31 @@ async function loadData(){
     document.getElementById('status').className="pill";
     const res = await fetch(API_URLS[currentMode]);
     const data = await res.json();
+
     renderTable("portfolio", data.portfolio);
     renderTable("orders", data.openOrders);
+
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
+
     let free="—", total="—";
     try{
       const scan = data.portfolio.slice(0,3);
       for (const r of scan){
         for (let i=0;i<r.length-1;i++){
           const k=String(r[i]||'').toLowerCase();
-          if (k.includes('свободные usdt')) free=r[i+1];
+          if (k.includes('свободные usdt') || k.includes('свободные рубли')) free=r[i+1];
           if (k.includes('общая стоимость портфеля')) total=r[i+1];
         }
       }
     }catch(_){}
-    document.getElementById('pfFree').textContent="USDT: "+free;
+
+    if(currentMode==="kripto"){
+      document.getElementById('pfFree').textContent="USDT: "+free;
+    }else{
+      document.getElementById('pfFree').textContent="₽: "+free;
+    }
     document.getElementById('pfTotal').textContent="∑: "+total;
+
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
