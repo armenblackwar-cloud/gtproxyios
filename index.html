@@ -138,7 +138,7 @@ function renderTable(id, rows){
   rows.forEach((row,i)=>{
     let filteredRow = row;
     if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
-    if (id==='portfolio'){ filteredRow = row; } // берём все колонки
+    if (id==='portfolio'){ filteredRow = row.slice(0,7); }
 
     const firstCell = String(filteredRow[0]||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
@@ -148,12 +148,6 @@ function renderTable(id, rows){
     if(isSection){
       const td = document.createElement("td");
       td.colSpan = filteredRow.length;
-      let sectionName = row[0].toLowerCase();
-
-      if(sectionName.includes("акции")) row[0] = "📈 Акции";
-      if(sectionName.includes("фонды")) row[0] = "💰 Фонды";
-      if(sectionName.includes("валют") || sectionName.includes("металл")) row[0] = "💵 Валюта и Металлы";
-
       td.textContent = row[0];
       td.className = "sectionRow";
       tr.appendChild(td);
@@ -163,26 +157,18 @@ function renderTable(id, rows){
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
 
-        // формат чисел (для td)
-        if(tag === "td" && !isNaN(val) && val !== ""){
+        // формат чисел
+        if(!isNaN(val) && val!=="" && tag==="td"){
           const num = parseFloat(val);
-          if(Number.isInteger(num)){
-            val = num.toString();
+          if(Math.abs(num) > 1e6){
+            val = num.toFixed(0);
           } else {
             val = num.toFixed(2);
           }
         }
 
-        // подсветка BUY/SELL
-        if (id==='orders' && i>0 && j===1){
-          td.className = val==="BUY" ? "buy" : val==="SELL" ? "sell" : "";
-        }
-
-        // подсветка PNL (две последние колонки)
-        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){
-          td.className = clsPnL(val);
-        }
-
+        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+        if (id==='portfolio' && i>0 && (j===5||j===6)){ td.className=clsPnL(val); }
         td.textContent=val;
         tr.appendChild(td);
       });
