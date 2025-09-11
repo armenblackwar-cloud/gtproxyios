@@ -29,6 +29,7 @@
     .pill{padding:1px 6px; border-radius:10px; font-size:10px; font-weight:600; min-width:55px; text-align:center}
     .pill.online{background:#193e2d; color:var(--green);}
     .pill.offline{background:#3e1919; color:var(--red);}
+    .logout{background:#333; cursor:pointer; margin-left:auto; min-width:auto; padding:2px 8px}
     main{padding:6px; display:grid; gap:8px}
     .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
@@ -52,7 +53,8 @@
       <span id="pfFree" class="pill">USDT: —</span>
       <span id="pfTotal" class="pill">∑: —</span>
       <span id="updated" class="pill">—</span>
-      <button id="logoutBtn" class="pill" style="background:#333;cursor:pointer;">🚪 Выйти</button>
+      <!-- 🚪 Кнопка справа -->
+      <button id="logoutBtn" class="pill logout">🚪 Выйти</button>
     </div>
   </header>
 
@@ -72,7 +74,7 @@
 
 <script>
 // ===== ПРОСТАЯ ЗАЩИТА ПАРОЛЕМ =====
-const PASSWORD = "1234";       // 🔑 поменяй пароль тут
+const PASSWORD = "Gt4815162342!";   // 🔑 пароль
 const STORAGE_KEY = "gtbot_auth";
 
 if (localStorage.getItem(STORAGE_KEY) !== "ok") {
