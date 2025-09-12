@@ -100,7 +100,7 @@ if (localStorage.getItem(STORAGE_KEY) !== "ok") {
   }
 }
 
-// ====== API ======
+// ====== API для разных режимов ======
 const API_URLS = {
   kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
   invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
@@ -122,7 +122,7 @@ function updateModePill(){
     currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
 }
 
-// ===== Вспомогательные =====
+// ===== Рендер =====
 function clsPnL(v){
   const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
   if (isNaN(num) || num === 0) return 'muted';
@@ -135,16 +135,6 @@ function formatNum(val){
   return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 }
 
-function applyPillClass(el, value){
-  const num = parseFloat(value);
-  if(isNaN(num) || num===0){
-    el.className = "pill muted";
-  } else {
-    el.className = "pill " + (num>0 ? "online pos" : "offline neg");
-  }
-}
-
-// ===== Рендер =====
 function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
@@ -205,7 +195,7 @@ async function loadData(){
 
     let free="—", total="—", pnlRub="—", pnlPct="—";
     try{
-      const scan = data.portfolio.slice(0,6);
+      const scan = data.portfolio.slice(0,5); // первые строки портфеля
       for (const r of scan){
         for (let i=0;i<r.length-1;i++){
           const k=String(r[i]||'').toLowerCase();
@@ -218,15 +208,9 @@ async function loadData(){
     }catch(_){}
 
     document.getElementById('pfFree').textContent = "Свободные: " + free;
+    document.getElementById('pfPnlRub').textContent = "PNL ₽: " + pnlRub;
+    document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
     document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
-
-    const pnlRubEl = document.getElementById('pfPnlRub');
-    pnlRubEl.textContent = "PNL ₽: " + pnlRub;
-    applyPillClass(pnlRubEl, pnlRub);
-
-    const pnlPctEl = document.getElementById('pfPnlPct');
-    pnlPctEl.textContent = "PNL %: " + pnlPct;
-    applyPillClass(pnlPctEl, pnlPct);
 
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
@@ -252,7 +236,7 @@ document.getElementById('logoutBtn').onclick=()=>{
   location.reload();
 };
 
-// Авто-старт
+// Авто-старт если режим уже выбран
 if (currentMode){
   document.getElementById("startScreen").style.display="none";
   document.getElementById("app").style.display="block";
