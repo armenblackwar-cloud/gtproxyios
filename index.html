@@ -228,7 +228,7 @@ async function loadData(){
           if (k.includes("pnl ₽")) pnlRub = v;
           if (k.includes("pnl %")) {
             const num = parseFloat(v);
-            pnlPct = isNaN(num) ? v : num * 100; // конвертируем долю в %
+            pnlPct = isNaN(num) ? v : num * 100; 
           }
         }
       } else {
@@ -248,8 +248,9 @@ async function loadData(){
       }
     }catch(_){}
 
-    document.getElementById('pfFree').textContent = "Свободные: " + free;
-    document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
+    // 📌 Тут форматируем числа с разделителями
+    document.getElementById('pfFree').textContent = "Свободные: " + formatNum(free);
+    document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
     applyPillClass(document.getElementById('pfPnlRub'), pnlRub, "PNL ₽");
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
