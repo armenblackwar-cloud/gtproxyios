@@ -28,7 +28,14 @@
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
     .grid{overflow-x:hidden}
     table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
-    th,td{padding:3px 2px; border-bottom:1px solid var(--border); text-align:center; white-space:normal; word-wrap:break-word; max-width:80px;}
+    th,td{
+      padding:3px 2px;
+      border:1px solid var(--border); /* клетки */
+      text-align:center;
+      white-space:normal;
+      word-wrap:break-word;
+      max-width:80px;
+    }
     th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
     .buy{color:var(--green); font-weight:600}
     .sell{color:var(--red); font-weight:600}
@@ -126,7 +133,7 @@ function clsPnL(v){
 function formatNum(val){
   const num = parseFloat(val);
   if(Number.isNaN(num)) return val;
-  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
+  return num.toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2});
 }
 function applyPillClass(el, value, label){
   const num = parseFloat(value);
@@ -137,7 +144,7 @@ function applyPillClass(el, value, label){
   } else {
     el.className = "pill neg";
   }
-  el.textContent = label + ": " + value;
+  el.textContent = label + ": " + formatNum(value);
 }
 
 // ===== Render =====
@@ -156,10 +163,8 @@ function renderTable(id, rows){
     }
     if (id==='portfolio'){ 
       if(currentMode==="kripto"){
-        // Крипта: Тикер | Количество | Средн. цена | Цена (рынок) | Стоимость | PnL % | PnL $
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6]];
       } else {
-        // Инвест: Тикер | Название | Текущая цена | Средняя цена | Количество | Общий объём ₽ | PNL ₽ | PNL %
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       }
     }
@@ -206,14 +211,14 @@ async function loadData(){
 
     let free="—", total="—", pnlRub="—", pnlPct="—";
     try{
-      const scan = data.portfolio.slice(0,6);
+      const scan = data.portfolio.slice(0,10);
       for (const r of scan){
         for (let i=0;i<r.length-1;i++){
           const k=String(r[i]||'').toLowerCase();
-          if (k.includes('свободные')) free = r[i+1];
-          if (k.includes('общая стоимость портфеля')) total = r[i+1];
-          if (k.includes('общий pnl ₽')) pnlRub = r[i+1];
-          if (k.includes('общий pnl %')) pnlPct = r[i+1];
+          if (k.includes('свободн')) free = r[i+1];
+          if (k.includes('стоимость') || k.includes('объем')) total = r[i+1];
+          if (k.includes('pnl ₽')) pnlRub = r[i+1];
+          if (k.includes('pnl %')) pnlPct = r[i+1];
         }
       }
     }catch(_){}
