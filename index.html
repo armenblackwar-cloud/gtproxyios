@@ -132,14 +132,12 @@ function applyPillClass(el, value, label){
   const num = parseFloat(value);
   if(isNaN(num) || num===0){
     el.className = "pill muted";
-    el.textContent = label + ": " + value;
   } else if(num > 0){
     el.className = "pill pos";
-    el.textContent = label + ": " + value + " ▲";
   } else {
     el.className = "pill neg";
-    el.textContent = label + ": " + value + " ▼";
   }
+  el.textContent = label + ": " + value;
 }
 
 // ===== Render =====
