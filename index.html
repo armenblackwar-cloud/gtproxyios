@@ -30,7 +30,7 @@
     table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
     th,td{
       padding:3px 2px;
-      border:1px solid var(--border); /* клетки */
+      border:1px solid var(--border);
       text-align:center;
       white-space:normal;
       word-wrap:break-word;
@@ -88,7 +88,6 @@
     📱 Добавь на iPhone: Поделиться → «На экран Домой»
   </footer>
 
-  <!-- 🚪 Выйти внизу -->
   <button id="logoutBtn" class="logout">🚪 Выйти</button>
 </div>
 
@@ -217,11 +216,20 @@ async function loadData(){
     try{
       if(currentMode === "invest"){
         for (let i=0; i<data.portfolio.length; i++){
-          const k = String(data.portfolio[i][9] || "").toLowerCase();
+          const row = data.portfolio[i];
+          const ticker = String(row[0] || "").toUpperCase();
+
+          if (ticker === "RUB") free = row[5]; // Свободные = общий объём RUB
+
+          const k = String(row[9] || "").toLowerCase();
           const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
+
           if (k.includes("стоимость")) total = v;
           if (k.includes("pnl ₽")) pnlRub = v;
-          if (k.includes("pnl %")) pnlPct = v;
+          if (k.includes("pnl %")) {
+            const num = parseFloat(v);
+            pnlPct = isNaN(num) ? v : num * 100; // конвертируем долю в %
+          }
         }
       } else {
         const scan = data.portfolio.slice(0,10);
@@ -231,7 +239,10 @@ async function loadData(){
             if (k.includes('свободн')) free = r[i+1];
             if (k.includes('стоимость') || k.includes('объем')) total = r[i+1];
             if (k.includes('pnl ₽')) pnlRub = r[i+1];
-            if (k.includes('pnl %')) pnlPct = r[i+1];
+            if (k.includes('pnl %')) {
+              const num = parseFloat(r[i+1]);
+              pnlPct = isNaN(num) ? r[i+1] : num * 100;
+            }
           }
         }
       }
