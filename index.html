@@ -19,7 +19,7 @@
     .pill.pos{background:#193e2d; color:var(--green);}
     .pill.neg{background:#3e1919; color:var(--red);}
     .pill.muted{background:#333; color:var(--muted);}
-    .logout{background:#333; cursor:pointer; min-width:auto; padding:2px 8px}
+    .logout{background:#333; cursor:pointer; padding:6px 10px; margin:10px auto; display:block; border-radius:8px; font-size:12px;}
     .header-top, .header-bottom{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     .header-bottom{width:100%; justify-content:space-between}
     .header-bottom .pill{flex:1; min-width:0}
@@ -63,7 +63,6 @@
       <span id="status" class="pill">—</span>
       <span id="updated" class="pill">—</span>
       <button id="switchBtn" class="pill">🔄 Переключить</button>
-      <button id="logoutBtn" class="pill logout">🚪 Выйти</button>
     </div>
     <div class="header-bottom">
       <span id="pfFree" class="pill">Свободные: —</span>
@@ -85,7 +84,12 @@
     </section>
   </main>
 
-  <footer>📱 Добавь на iPhone: Поделиться → «На экран Домой»</footer>
+  <footer>
+    📱 Добавь на iPhone: Поделиться → «На экран Домой»
+  </footer>
+
+  <!-- 🚪 Выйти внизу -->
+  <button id="logoutBtn" class="logout">🚪 Выйти</button>
 </div>
 
 <script>
