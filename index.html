@@ -215,14 +215,24 @@ async function loadData(){
 
     let free="—", total="—", pnlRub="—", pnlPct="—";
     try{
-      const scan = data.portfolio.slice(0,10);
-      for (const r of scan){
-        for (let i=0;i<r.length-1;i++){
-          const k=String(r[i]||'').toLowerCase();
-          if (k.includes('свободн')) free = r[i+1];
-          if (k.includes('стоимость') || k.includes('объем')) total = r[i+1];
-          if (k.includes('pnl ₽')) pnlRub = r[i+1];
-          if (k.includes('pnl %')) pnlPct = r[i+1];
+      if(currentMode === "invest"){
+        for (let i=0; i<data.portfolio.length; i++){
+          const k = String(data.portfolio[i][9] || "").toLowerCase();
+          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
+          if (k.includes("стоимость")) total = v;
+          if (k.includes("pnl ₽")) pnlRub = v;
+          if (k.includes("pnl %")) pnlPct = v;
+        }
+      } else {
+        const scan = data.portfolio.slice(0,10);
+        for (const r of scan){
+          for (let i=0;i<r.length-1;i++){
+            const k=String(r[i]||'').toLowerCase();
+            if (k.includes('свободн')) free = r[i+1];
+            if (k.includes('стоимость') || k.includes('объем')) total = r[i+1];
+            if (k.includes('pnl ₽')) pnlRub = r[i+1];
+            if (k.includes('pnl %')) pnlPct = r[i+1];
+          }
         }
       }
     }catch(_){}
