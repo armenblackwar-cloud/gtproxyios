@@ -151,8 +151,18 @@ function renderTable(id, rows){
 
   rows.forEach((row,i)=>{
     let filteredRow = row;
-    if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
-    if (id==='portfolio'){ filteredRow = row; }
+    if (id==='orders'){ 
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
+    }
+    if (id==='portfolio'){ 
+      if(currentMode==="kripto"){
+        // Крипта: Тикер | Количество | Средн. цена | Цена (рынок) | Стоимость | PnL % | PnL $
+        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6]];
+      } else {
+        // Инвест: Тикер | Название | Текущая цена | Средняя цена | Количество | Общий объём ₽ | PNL ₽ | PNL %
+        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
+      }
+    }
 
     const firstCell = String(filteredRow[0]||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
