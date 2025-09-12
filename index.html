@@ -212,20 +212,20 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    let free="—", total="—", pnlRub="—", pnlPct="—";
+    let free="—", total="—", pnlVal="—", pnlPct="—";
     try{
       if(currentMode === "invest"){
         for (let i=0; i<data.portfolio.length; i++){
           const row = data.portfolio[i];
           const ticker = String(row[0] || "").toUpperCase();
 
-          if (ticker === "RUB") free = row[5]; // Свободные = общий объём RUB
+          if (ticker === "RUB") free = row[5];
 
           const k = String(row[9] || "").toLowerCase();
           const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
 
           if (k.includes("стоимость")) total = v;
-          if (k.includes("pnl ₽")) pnlRub = v;
+          if (k.includes("pnl ₽")) pnlVal = v;
           if (k.includes("pnl %")) {
             const num = parseFloat(v);
             pnlPct = isNaN(num) ? v : num * 100; 
@@ -238,7 +238,7 @@ async function loadData(){
             const k=String(r[i]||'').toLowerCase();
             if (k.includes('свободн')) free = r[i+1];
             if (k.includes('стоимость') || k.includes('объем')) total = r[i+1];
-            if (k.includes('pnl ₽')) pnlRub = r[i+1];
+            if (k.includes('pnl $')) pnlVal = r[i+1];
             if (k.includes('pnl %')) {
               const num = parseFloat(r[i+1]);
               pnlPct = isNaN(num) ? r[i+1] : num * 100;
@@ -248,10 +248,17 @@ async function loadData(){
       }
     }catch(_){}
 
-    // 📌 Тут форматируем числа с разделителями
-    document.getElementById('pfFree').textContent = "Свободные: " + formatNum(free);
-    document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
-    applyPillClass(document.getElementById('pfPnlRub'), pnlRub, "PNL ₽");
+    // 📌 разные подписи для шапки
+    if(currentMode === "invest"){
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + formatNum(free);
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
+      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
+    } else {
+      document.getElementById('pfFree').textContent = "Свободные $: " + formatNum(free);
+      document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total);
+      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
+    }
+
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
