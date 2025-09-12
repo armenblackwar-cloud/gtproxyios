@@ -11,41 +11,32 @@
     }
     body{margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
       background:var(--bg); color:var(--text); padding-top: env(safe-area-inset-top);}
-    header{position:sticky; top:0; background:#1a1f28; padding:10px 6px; font-size:11px; display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+    header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px; display:flex; flex-direction:column; gap:4px}
     h1{font-size:14px; margin:0; color:var(--yellow);}
-    .pill{padding:1px 6px; border-radius:10px; font-size:10px; font-weight:600; min-width:55px; text-align:center}
+    .pill{padding:2px 6px; border-radius:8px; font-size:10px; font-weight:600; text-align:center}
     .pill.online{background:#193e2d; color:var(--green);}
     .pill.offline{background:#3e1919; color:var(--red);}
-    .logout{background:#333; cursor:pointer; margin-left:auto; min-width:auto; padding:2px 8px}
+    .pill.pos{background:#193e2d; color:var(--green);}
+    .pill.neg{background:#3e1919; color:var(--red);}
+    .pill.muted{background:#333; color:var(--muted);}
+    .logout{background:#333; cursor:pointer; min-width:auto; padding:2px 8px}
+    .header-top, .header-bottom{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+    .header-bottom{width:100%; justify-content:space-between}
+    .header-bottom .pill{flex:1; min-width:0}
     main{padding:6px; display:grid; gap:8px}
     .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
     .grid{overflow-x:hidden}
     table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
-    th,td{
-      padding:3px 2px;
-      border-bottom:1px solid var(--border);
-      text-align:center;
-      white-space:normal;   
-      word-wrap:break-word; 
-      max-width:80px;       
-    }
+    th,td{padding:3px 2px; border-bottom:1px solid var(--border); text-align:center; white-space:normal; word-wrap:break-word; max-width:80px;}
     th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
     .buy{color:var(--green); font-weight:600}
     .sell{color:var(--red); font-weight:600}
     .pos{color:var(--green); font-weight:600}
     .neg{color:var(--red); font-weight:600}
     .muted{color:var(--muted)}
-    .sectionRow {
-      text-align:center;
-      font-weight:700;
-      color:var(--yellow);
-      background:#222;
-      padding:4px;
-    }
+    .sectionRow{text-align:center; font-weight:700; color:var(--yellow); background:#222; padding:4px;}
     footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
-
-    /* стартовое меню */
     #startScreen{display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; gap:20px}
     .startBtn{background:var(--yellow); color:#000; font-weight:700; border:none; border-radius:8px; padding:15px 25px; font-size:16px; cursor:pointer}
   </style>
@@ -60,13 +51,19 @@
 
 <div id="app" style="display:none">
   <header>
-    <h1 id="modePill">—</h1>
-    <span id="status" class="pill">—</span>
-    <span id="pfFree" class="pill">—</span>
-    <span id="pfTotal" class="pill">∑: —</span>
-    <span id="updated" class="pill">—</span>
-    <button id="switchBtn" class="pill">🔄 Переключить</button>
-    <button id="logoutBtn" class="pill logout">🚪 Выйти</button>
+    <div class="header-top">
+      <h1 id="modePill">—</h1>
+      <span id="status" class="pill">—</span>
+      <span id="updated" class="pill">—</span>
+      <button id="switchBtn" class="pill">🔄 Переключить</button>
+      <button id="logoutBtn" class="pill logout">🚪 Выйти</button>
+    </div>
+    <div class="header-bottom">
+      <span id="pfFree" class="pill">Свободные: —</span>
+      <span id="pfPnlPct" class="pill">PNL %: —</span>
+      <span id="pfPnlRub" class="pill">PNL ₽: —</span>
+      <span id="pfTotal" class="pill">Объем ₽: —</span>
+    </div>
   </header>
 
   <main>
@@ -98,7 +95,7 @@ if (localStorage.getItem(STORAGE_KEY) !== "ok") {
   }
 }
 
-// ====== API для разных режимов ======
+// ====== API ======
 const API_URLS = {
   kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
   invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
@@ -120,13 +117,32 @@ function updateModePill(){
     currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
 }
 
-// ===== Рендер =====
+// ===== Helpers =====
 function clsPnL(v){
   const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
   if (isNaN(num) || num === 0) return 'muted';
   return num > 0 ? 'pos' : 'neg';
 }
+function formatNum(val){
+  const num = parseFloat(val);
+  if(Number.isNaN(num)) return val;
+  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
+}
+function applyPillClass(el, value, label){
+  const num = parseFloat(value);
+  if(isNaN(num) || num===0){
+    el.className = "pill muted";
+    el.textContent = label + ": " + value;
+  } else if(num > 0){
+    el.className = "pill pos";
+    el.textContent = label + ": " + value + " ▲";
+  } else {
+    el.className = "pill neg";
+    el.textContent = label + ": " + value + " ▼";
+  }
+}
 
+// ===== Render =====
 function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
@@ -138,7 +154,7 @@ function renderTable(id, rows){
   rows.forEach((row,i)=>{
     let filteredRow = row;
     if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
-    if (id==='portfolio'){ filteredRow = row; } // берём все колонки
+    if (id==='portfolio'){ filteredRow = row; }
 
     const firstCell = String(filteredRow[0]||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
@@ -148,12 +164,6 @@ function renderTable(id, rows){
     if(isSection){
       const td = document.createElement("td");
       td.colSpan = filteredRow.length;
-      let sectionName = row[0].toLowerCase();
-
-      if(sectionName.includes("акции")) row[0] = "📈 Акции";
-      if(sectionName.includes("фонды")) row[0] = "💰 Фонды";
-      if(sectionName.includes("валют") || sectionName.includes("металл")) row[0] = "💵 Валюта и Металлы";
-
       td.textContent = row[0];
       td.className = "sectionRow";
       tr.appendChild(td);
@@ -162,27 +172,9 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-
-        // формат чисел (для td)
-        if(tag === "td" && !isNaN(val) && val !== ""){
-          const num = parseFloat(val);
-          if(Number.isInteger(num)){
-            val = num.toString();
-          } else {
-            val = num.toFixed(2);
-          }
-        }
-
-        // подсветка BUY/SELL
-        if (id==='orders' && i>0 && j===1){
-          td.className = val==="BUY" ? "buy" : val==="SELL" ? "sell" : "";
-        }
-
-        // подсветка PNL (две последние колонки)
-        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){
-          td.className = clsPnL(val);
-        }
-
+        if(tag==="td" && val!==""){ if(!isNaN(val)) val = formatNum(val); }
+        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
         td.textContent=val;
         tr.appendChild(td);
       });
@@ -191,7 +183,7 @@ function renderTable(id, rows){
   });
 }
 
-// ===== Загрузка =====
+// ===== Load =====
 async function loadData(){
   if (!currentMode) return;
   try{
@@ -202,27 +194,26 @@ async function loadData(){
 
     renderTable("portfolio", data.portfolio);
     renderTable("orders", data.openOrders);
-
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    let free="—", total="—";
+    let free="—", total="—", pnlRub="—", pnlPct="—";
     try{
-      const scan = data.portfolio.slice(0,3);
+      const scan = data.portfolio.slice(0,6);
       for (const r of scan){
         for (let i=0;i<r.length-1;i++){
           const k=String(r[i]||'').toLowerCase();
-          if (k.includes('свободные usdt') || k.includes('свободные рубли')) free=r[i+1];
-          if (k.includes('общая стоимость портфеля')) total=r[i+1];
+          if (k.includes('свободные')) free = r[i+1];
+          if (k.includes('общая стоимость портфеля')) total = r[i+1];
+          if (k.includes('общий pnl ₽')) pnlRub = r[i+1];
+          if (k.includes('общий pnl %')) pnlPct = r[i+1];
         }
       }
     }catch(_){}
 
-    if(currentMode==="kripto"){
-      document.getElementById('pfFree').textContent="USDT: "+free;
-    }else{
-      document.getElementById('pfFree').textContent="₽: "+free;
-    }
-    document.getElementById('pfTotal').textContent="∑: "+total;
+    document.getElementById('pfFree').textContent = "Свободные: " + free;
+    document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
+    applyPillClass(document.getElementById('pfPnlRub'), pnlRub, "PNL ₽");
+    applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
@@ -233,28 +224,16 @@ async function loadData(){
   }
 }
 
-// Автообновление
+// Auto-refresh
 setInterval(loadData,60000);
 
-// Переключение режима
-document.getElementById("switchBtn").onclick=()=>{
-  chooseMode(currentMode==="kripto"?"invest":"kripto");
-};
+// Switch mode
+document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
+// Logout
+document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
 
-// 🚪 Выход
-document.getElementById('logoutBtn').onclick=()=>{
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem("gtbot_mode");
-  location.reload();
-};
-
-// Авто-старт если режим уже выбран
-if (currentMode){
-  document.getElementById("startScreen").style.display="none";
-  document.getElementById("app").style.display="block";
-  updateModePill();
-  loadData();
-}
+// Auto-start
+if (currentMode){ document.getElementById("startScreen").style.display="none"; document.getElementById("app").style.display="block"; updateModePill(); loadData(); }
 </script>
 </body>
 </html>
