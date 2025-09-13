@@ -215,13 +215,16 @@ async function loadData(){
           }
         }
       } else { // === CRYPTO ===
-        for (let i=0; i<data.portfolio.length; i++){
-          const k = String(data.portfolio[i][8] || "").toLowerCase(); // колонка I (подписи)
-          const v = data.portfolio[i][9]; // колонка J (значения)
-          if (k.includes("свободн")) free = v;
-          if (k.includes("стоим")) total = v;
-          if (k.includes("pnl usd")) pnlVal = v;
-          if (k.includes("pnl %")) pnlPct = v;
+        const scan = data.portfolio.slice(0,12);
+        for (const row of scan){
+          for (let i=0;i<row.length-1;i++){
+            const k = String(row[i]||'').toLowerCase();
+            const v = row[i+1];
+            if (k.includes('свободн')) free = v;
+            if (k.includes('объем') || k.includes('стоим')) total = v;
+            if (k.includes('pnl $') || k.includes('pnl usd')) pnlVal = v;
+            if (k.includes('pnl %')) pnlPct = v;
+          }
         }
       }
     }catch(_){}
