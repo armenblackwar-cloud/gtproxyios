@@ -152,18 +152,18 @@ function renderTable(id, rows){
     return;
   }
 
-  rows.forEach((row,i)=>{
-    let filteredRow = row;
-    if (id==='orders'){ 
-      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
-    }
-    if (id==='portfolio'){ 
-      if(currentMode==="kripto"){
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6]];
-      } else {
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
-      }
-    }
+  if(currentMode === "kripto"){
+  // Вытаскиваем из JSON метки справа
+  for (let i=0; i<data.portfolio.length; i++){
+    const label = String(data.portfolio[i][0] || "").toLowerCase();
+    const value = data.portfolio[i][1]; // <-- всегда вторая колонка!
+
+    if (label.includes("стоим")) total = value;
+    if (label.includes("pnl usd")) pnlVal = value;
+    if (label.includes("pnl %")) pnlPct = value;
+    if (label.includes("время")) updated = value;
+  }
+}
 
     const firstCell = String(filteredRow[0]||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
