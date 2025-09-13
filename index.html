@@ -28,14 +28,7 @@
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
     .grid{overflow-x:hidden}
     table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
-    th,td{
-      padding:3px 2px;
-      border:1px solid var(--border);
-      text-align:center;
-      white-space:normal;
-      word-wrap:break-word;
-      max-width:80px;
-    }
+    th,td{padding:3px 2px;border:1px solid var(--border);text-align:center;white-space:normal;word-wrap:break-word;max-width:80px;}
     th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
     .buy{color:var(--green); font-weight:600}
     .sell{color:var(--red); font-weight:600}
@@ -212,38 +205,32 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    let free="—", total="—", pnlVal="—", pnlPct="—";
+    let free="—", total="—", pnlVal="—", pnlPct="—", updated="";
+
     try{
       if(currentMode === "invest"){
         for (let i=0; i<data.portfolio.length; i++){
           const row = data.portfolio[i];
           const ticker = String(row[0] || "").toUpperCase();
-
           if (ticker === "RUB") free = row[5];
-
           const k = String(row[9] || "").toLowerCase();
           const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
-
           if (k.includes("стоимость")) total = v;
           if (k.includes("pnl ₽")) pnlVal = v;
           if (k.includes("pnl %")) {
             const num = parseFloat(v);
-            pnlPct = isNaN(num) ? v : num * 100; 
+            pnlPct = isNaN(num) ? v : num * 100;
           }
         }
-      } else { // === CRYPTO ===
-        for (const r of data.portfolio){
-          const label = String(r[0]||'').toLowerCase();
-          const val = r[r.length-1]; // <-- теперь берём последнюю колонку
-          if (label.includes('свободн')) free = val;
-          if (label.includes('💰')) total = val;
-          if (label.includes('📈')) pnlVal = val;
-          if (label.includes('📊')) pnlPct = val;
-        }
+      } else {
+        // Для CRYPTO напрямую берём из I2, I4, I6, I8
+        total   = data.portfolio[1][9];  // Общая стоимость
+        pnlVal  = data.portfolio[3][9];  // PnL USD
+        pnlPct  = data.portfolio[5][9];  // PnL %
+        updated = data.portfolio[7][9];  // Время обновления
       }
     }catch(_){}
 
-    // 📌 разные подписи для шапки
     if(currentMode === "invest"){
       document.getElementById('pfFree').textContent = "Свободные ₽: " + formatNum(free);
       document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
@@ -256,7 +243,7 @@ async function loadData(){
 
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
-    document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
+    document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
   }catch(e){
