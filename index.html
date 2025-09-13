@@ -92,6 +92,7 @@
 </div>
 
 <script>
+// ====== Пароль ======
 const PASSWORD = "Gt4815162342!";
 const STORAGE_KEY = "gtbot_auth";
 if (localStorage.getItem(STORAGE_KEY) !== "ok") {
@@ -104,6 +105,7 @@ if (localStorage.getItem(STORAGE_KEY) !== "ok") {
   }
 }
 
+// ====== API ======
 const API_URLS = {
   kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
   invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
@@ -111,39 +113,61 @@ const API_URLS = {
 
 let currentMode = localStorage.getItem("gtbot_mode") || null;
 
-function chooseMode(mode){
-  currentMode = mode;
-  localStorage.setItem("gtbot_mode", mode);
-  document.getElementById("startScreen").style.display="none";
-  document.getElementById("app").style.display="block";
-  loadData();
-  updateModePill();
-}
-function updateModePill(){
-  document.getElementById("modePill").textContent =
-    currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
-}
-function clsPnL(v){
-  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
-  if (isNaN(num) || num === 0) return 'muted';
-  return num > 0 ? 'pos' : 'neg';
+// ===== Helpers =====
+const isNum = v => typeof v === 'number' && isFinite(v);
+function parseNum(v){
+  if (v === null || v === undefined) return NaN;
+  if (typeof v === 'number') return v;
+  const s = String(v).replace(/\s+/g,'').replace(/,/g,'.').replace(/[^\d.\-]/g,'');
+  const n = parseFloat(s);
+  return isFinite(n) ? n : NaN;
 }
 function formatNum(val){
-  const num = parseFloat(val);
-  if(Number.isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  const n = parseNum(val);
+  if (isNaN(n)) return String(val ?? '—');
+  return n.toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2});
 }
 function applyPillClass(el, value, label){
-  const num = parseFloat(value);
-  if(isNaN(num) || num===0){
+  const n = parseNum(value);
+  if (isNaN(n) || n === 0){
     el.className = "pill muted";
-  } else if(num > 0){
+  } else if (n > 0){
     el.className = "pill pos";
   } else {
     el.className = "pill neg";
   }
-  el.textContent = label + ": " + formatNum(value);
+  el.textContent = label + ": " + formatNum(n);
 }
+function clsPnL(v){
+  const n = parseNum(v);
+  if (isNaN(n) || n === 0) return 'muted';
+  return n > 0 ? 'pos' : 'neg';
+}
+
+// универсальный поиск значения по подписи (вправо →, иначе вниз ↓)
+function findByLabel(grid, kwList){
+  const KW = (kwList||[]).map(s=>s.toLowerCase());
+  for (let r=0; r<grid.length; r++){
+    const row = grid[r] || [];
+    for (let c=0; c<row.length; c++){
+      const cell = String(row[c] ?? '').toLowerCase();
+      if (!cell) continue;
+      if (KW.some(k=>cell.includes(k))){
+        // сначала вправо
+        const right = (row[c+1] !== undefined) ? row[c+1] : '';
+        let val = right;
+        // если справа пусто — пробуем ниже
+        if (val === '' || val === null || val === undefined){
+          val = (grid[r+1] && grid[r+1][c] !== undefined) ? grid[r+1][c] : '';
+        }
+        return val;
+      }
+    }
+  }
+  return undefined;
+}
+
+// ===== Render =====
 function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
@@ -153,7 +177,9 @@ function renderTable(id, rows){
   }
   rows.forEach((row,i)=>{
     let filteredRow = row;
-    if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
+    if (id==='orders'){ 
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
+    }
     if (id==='portfolio'){ 
       if(currentMode==="kripto"){
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6]];
@@ -161,7 +187,7 @@ function renderTable(id, rows){
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       }
     }
-    const firstCell = String(filteredRow[0]||"").toLowerCase();
+    const firstCell = String((filteredRow && filteredRow[0])||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
     const tr = document.createElement("tr");
     if(isSection){
@@ -175,7 +201,7 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-        if(tag==="td" && val!==""){ if(!isNaN(val)) val = formatNum(val); }
+        if(tag==="td" && val!==""){ if(!isNaN(parseNum(val))) val = formatNum(val); }
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
         if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
         td.textContent=val;
@@ -186,55 +212,67 @@ function renderTable(id, rows){
   });
 }
 
+// ===== Mode switch =====
+function chooseMode(mode){
+  currentMode = mode;
+  localStorage.setItem("gtbot_mode", mode);
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("app").style.display="block";
+  loadData();
+  updateModePill();
+}
+function updateModePill(){
+  document.getElementById("modePill").textContent =
+    currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
+}
+
+// ===== Load =====
 async function loadData(){
   if (!currentMode) return;
   try{
     document.getElementById('status').textContent="Обновляю…";
     document.getElementById('status').className="pill";
+
     const res = await fetch(API_URLS[currentMode]);
     const data = await res.json();
 
+    // таблицы
     renderTable("portfolio", data.portfolio);
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    let free="—", total="—", pnlVal="—", pnlPct="—", updated="—";
-    try{
-      if(currentMode === "invest"){
-        for (let i=0; i<data.portfolio.length; i++){
-          const row = data.portfolio[i];
-          const ticker = String(row[0] || "").toUpperCase();
-          if (ticker === "RUB") free = row[5];
-          const k = String(row[9] || "").toLowerCase();
-          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
-          if (k.includes("стоимость")) total = v;
-          if (k.includes("pnl ₽")) pnlVal = v;
-          if (k.includes("pnl %")) pnlPct = v;
-        }
-      } else { // === CRYPTO ===
-        for (let i=0; i<data.portfolio.length; i++){
-          const label = String(data.portfolio[i][8] || "").toLowerCase();
-          const value = data.portfolio[i][9];
-          if (label.includes("стоимость")) total = value;
-          if (label.includes("pnl usd")) pnlVal = value;
-          if (label.includes("pnl %")) pnlPct = value;
-          if (label.includes("время")) updated = value;
-        }
-      }
-    }catch(_){}
+    // ===== summary из сетки по подписям (универсально для invest/crypto) =====
+    const grid = Array.isArray(data.portfolio) ? data.portfolio : [];
 
-    if(currentMode === "invest"){
-      document.getElementById('pfFree').textContent = "Свободные ₽: " + formatNum(free);
-      document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
-      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
-    } else {
-      document.getElementById('pfFree').textContent = "Свободные $: —";
-      document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total);
-      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
+    const free   = findByLabel(grid, ["свободн", "free"]);
+    const total  = findByLabel(grid, ["общая стоимость портфеля", "объем $", "объем ₽", "стоимость портфеля"]);
+    const pnlUsd = findByLabel(grid, ["общий pnl usd", "pnl $", "pnl ₽"]);
+    let   pnlPct = findByLabel(grid, ["общий pnl %", "pnl %"]);
+    const upd    = findByLabel(grid, ["время обновления", "обновлен"]);
+
+    // Нормализация процентов: если пришло как доля (|x|<1) — умножаем на 100
+    let pnlPctNum = parseNum(pnlPct);
+    if (!isNaN(pnlPctNum) && Math.abs(pnlPctNum) > 0 && Math.abs(pnlPctNum) < 1){
+      pnlPctNum = pnlPctNum * 100;
+      pnlPct = pnlPctNum;
     }
-    applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
-    document.getElementById('updated').textContent = updated!=="—" ? updated : new Date().toLocaleString('ru-RU');
+    // Шапка с правильными валютами
+    if(currentMode === "invest"){
+      document.getElementById('pfFree').textContent  = "Свободные ₽: " + formatNum(free ?? "—");
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total ?? "—");
+      applyPillClass(document.getElementById('pfPnlRub'), pnlUsd ?? "—", "PNL ₽");
+    } else {
+      document.getElementById('pfFree').textContent  = "Свободные $: " + formatNum(free ?? "—");
+      document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total ?? "—");
+      applyPillClass(document.getElementById('pfPnlRub'), pnlUsd ?? "—", "PNL $");
+    }
+    applyPillClass(document.getElementById('pfPnlPct'), pnlPct ?? "—", "PNL %");
+
+    // время
+    document.getElementById('updated').textContent = upd ? String(upd) : new Date().toLocaleString('ru-RU');
+
+    // статус
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
   }catch(e){
@@ -243,10 +281,18 @@ async function loadData(){
   }
 }
 
+// автообновление + кнопки
 setInterval(loadData,60000);
 document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
 document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
-if (currentMode){ document.getElementById("startScreen").style.display="none"; document.getElementById("app").style.display="block"; updateModePill(); loadData(); }
+
+// автозапуск
+if (currentMode){
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("app").style.display="block";
+  updateModePill();
+  loadData();
+}
 </script>
 </body>
 </html>
