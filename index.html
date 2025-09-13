@@ -226,29 +226,21 @@ async function loadData(){
 
           if (k.includes("стоимость")) total = v;
           if (k.includes("pnl ₽")) pnlVal = v;
-          if (k.includes("pnl %")) {
-            pnlPct = v;
-          }
+          if (k.includes("pnl %")) pnlPct = v;
         }
-      } else { // === CRYPTO ===
-        for (let i=0; i<data.portfolio.length; i++){
-          const row = data.portfolio[i];
-          const mark = String(row[8] || "").toLowerCase();
-
-          if (mark.includes("💰")) {
-            total = row[row.length-1]; // последняя колонка = число
-          }
-          if (mark.includes("📈")) {
-            pnlVal = row[row.length-1];
-          }
-          if (mark.includes("📊")) {
-            pnlPct = row[row.length-1];
-          }
-          }
+      } else {
+        const scan = data.portfolio.slice(0,15);
+        for (const r of scan){
+          const mark = String(r[8] || r[0] || '').toLowerCase(); 
+          if (mark.includes('свободн')) free = r[r.length-1];
+          if (mark.includes('💰')) total = r[r.length-1];
+          if (mark.includes('📈')) pnlVal = r[r.length-1];
+          if (mark.includes('📊')) pnlPct = r[r.length-1];
         }
       }
     }catch(_){}
 
+    // 📌 разные подписи для шапки
     if(currentMode === "invest"){
       document.getElementById('pfFree').textContent = "Свободные ₽: " + formatNum(free);
       document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
@@ -258,6 +250,7 @@ async function loadData(){
       document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total);
       applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
     }
+
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
