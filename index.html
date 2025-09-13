@@ -209,22 +209,16 @@ async function loadData(){
           const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
           if (k.includes("стоимость")) total = v;
           if (k.includes("pnl ₽")) pnlVal = v;
-          if (k.includes("pnl %")) {
-            const num = parseFloat(v);
-            pnlPct = isNaN(num) ? v : num * 100; 
-          }
+          if (k.includes("pnl %")) pnlPct = v;
         }
       } else { // === CRYPTO ===
-        const scan = data.portfolio.slice(0,12);
-        for (const row of scan){
-          for (let i=0;i<row.length-1;i++){
-            const k = String(row[i]||'').toLowerCase();
-            const v = row[i+1];
-            if (k.includes('свободн')) free = v;
-            if (k.includes('объем') || k.includes('стоим')) total = v;
-            if (k.includes('pnl $') || k.includes('pnl usd')) pnlVal = v;
-            if (k.includes('pnl %')) pnlPct = v;
-          }
+        for (let i=0; i<data.portfolio.length; i++){
+          const k = String(data.portfolio[i][0] || "").toLowerCase(); // в crypto метки в первой колонке
+          const v = data.portfolio[i][1]; // значение во второй колонке
+          if (k.includes("свободн")) free = v;
+          if (k.includes("объем") || k.includes("стоим")) total = v;
+          if (k.includes("pnl $") || k.includes("pnl usd")) pnlVal = v;
+          if (k.includes("pnl %")) pnlPct = v;
         }
       }
     }catch(_){}
