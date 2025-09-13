@@ -92,6 +92,7 @@
 </div>
 
 <script>
+// ====== Пароль ======
 const PASSWORD = "Gt4815162342!";
 const STORAGE_KEY = "gtbot_auth";
 if (localStorage.getItem(STORAGE_KEY) !== "ok") {
@@ -104,6 +105,7 @@ if (localStorage.getItem(STORAGE_KEY) !== "ok") {
   }
 }
 
+// ====== API ======
 const API_URLS = {
   kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
   invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
@@ -119,10 +121,13 @@ function chooseMode(mode){
   loadData();
   updateModePill();
 }
+
 function updateModePill(){
   document.getElementById("modePill").textContent =
     currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
 }
+
+// ===== Helpers =====
 function clsPnL(v){
   const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
   if (isNaN(num) || num === 0) return 'muted';
@@ -144,6 +149,8 @@ function applyPillClass(el, value, label){
   }
   el.textContent = label + ": " + formatNum(value);
 }
+
+// ===== Render =====
 function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
@@ -151,9 +158,12 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
+
   rows.forEach((row,i)=>{
     let filteredRow = row;
-    if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
+    if (id==='orders'){ 
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
+    }
     if (id==='portfolio'){ 
       if(currentMode==="kripto"){
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6]];
@@ -161,9 +171,12 @@ function renderTable(id, rows){
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       }
     }
+
     const firstCell = String(filteredRow[0]||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
+
     const tr = document.createElement("tr");
+
     if(isSection){
       const td = document.createElement("td");
       td.colSpan = filteredRow.length;
@@ -186,6 +199,7 @@ function renderTable(id, rows){
   });
 }
 
+// ===== Load =====
 async function loadData(){
   if (!currentMode) return;
   try{
@@ -198,23 +212,54 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    // summary
     let free="—", total="—", pnlVal="—", pnlPct="—";
-    if (data.summary){
-      total  = data.summary.totalUSD || "—";
-      pnlVal = data.summary.pnlUSD   || "—";
-      pnlPct = data.summary.pnlPct   || "—";
+    try{
+      if(currentMode === "invest"){
+        for (let i=0; i<data.portfolio.length; i++){
+          const row = data.portfolio[i];
+          const ticker = String(row[0] || "").toUpperCase();
+
+          if (ticker === "RUB") free = row[5];
+
+          const k = String(row[9] || "").toLowerCase();
+          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
+
+          if (k.includes("стоимость")) total = v;
+          if (k.includes("pnl ₽")) pnlVal = v;
+          if (k.includes("pnl %")) {
+            pnlPct = v;
+          }
+        }
+      } else { // === CRYPTO ===
+        for (let i=0; i<data.portfolio.length; i++){
+          const row = data.portfolio[i];
+          const mark = String(row[8] || "").toLowerCase();
+
+          if (mark.includes("💰") || mark.includes("стоимость")) {
+            total = row[9] || row[8] || row[row.length-1];
+          }
+          if (mark.includes("📈")) {
+            pnlVal = row[9] || row[8] || row[row.length-1];
+          }
+          if (mark.includes("📊")) {
+            pnlPct = row[9] || row[8] || row[row.length-1];
+          }
+          if (String(row[0]||"").includes("USDT")) {
+            free = row[5] || row[4];
+          }
+        }
+      }
+    }catch(_){}
+
+    if(currentMode === "invest"){
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + formatNum(free);
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
+      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
+    } else {
+      document.getElementById('pfFree').textContent = "Свободные $: " + formatNum(free);
+      document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total);
+      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
     }
-
-    document.getElementById('pfFree').textContent = 
-      (currentMode==="invest" ? "Свободные ₽: —" : "Свободные $: —");
-
-    document.getElementById('pfTotal').textContent = 
-      (currentMode==="invest" ? "Объем ₽: " : "Объем $: ") + formatNum(total);
-
-    applyPillClass(document.getElementById('pfPnlRub'), pnlVal, 
-      currentMode==="invest" ? "PNL ₽" : "PNL $");
-
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
@@ -226,9 +271,15 @@ async function loadData(){
   }
 }
 
+// Auto-refresh
 setInterval(loadData,60000);
+
+// Switch mode
 document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
+// Logout
 document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
+
+// Auto-start
 if (currentMode){ document.getElementById("startScreen").style.display="none"; document.getElementById("app").style.display="block"; updateModePill(); loadData(); }
 </script>
 </body>
