@@ -198,7 +198,7 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    let free="—", total="—", pnlVal="—", pnlPct="—";
+    let free="—", total="—", pnlVal="—", pnlPct="—", updated="—";
     try{
       if(currentMode === "invest"){
         for (let i=0; i<data.portfolio.length; i++){
@@ -213,12 +213,12 @@ async function loadData(){
         }
       } else { // === CRYPTO ===
         for (let i=0; i<data.portfolio.length; i++){
-          const k = String(data.portfolio[i][0] || "").toLowerCase(); // в crypto метки в первой колонке
-          const v = data.portfolio[i][1]; // значение во второй колонке
-          if (k.includes("свободн")) free = v;
-          if (k.includes("объем") || k.includes("стоим")) total = v;
-          if (k.includes("pnl $") || k.includes("pnl usd")) pnlVal = v;
-          if (k.includes("pnl %")) pnlPct = v;
+          const label = String(data.portfolio[i][8] || "").toLowerCase();
+          const value = data.portfolio[i][9];
+          if (label.includes("стоимость")) total = value;
+          if (label.includes("pnl usd")) pnlVal = value;
+          if (label.includes("pnl %")) pnlPct = value;
+          if (label.includes("время")) updated = value;
         }
       }
     }catch(_){}
@@ -228,13 +228,13 @@ async function loadData(){
       document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
       applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
     } else {
-      document.getElementById('pfFree').textContent = "Свободные $: " + formatNum(free);
+      document.getElementById('pfFree').textContent = "Свободные $: —";
       document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total);
       applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
     }
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
-    document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
+    document.getElementById('updated').textContent = updated!=="—" ? updated : new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
   }catch(e){
