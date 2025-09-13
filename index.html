@@ -67,8 +67,8 @@
     <div class="header-bottom">
       <span id="pfFree" class="pill">Свободные: —</span>
       <span id="pfPnlPct" class="pill">PNL %: —</span>
-      <span id="pfPnlRub" class="pill">PNL ₽/$: —</span>
-      <span id="pfTotal" class="pill">Объем ₽/$: —</span>
+      <span id="pfPnlRub" class="pill">PNL ₽: —</span>
+      <span id="pfTotal" class="pill">Объем ₽: —</span>
     </div>
   </header>
 
@@ -198,27 +198,23 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
+    // summary
     let free="—", total="—", pnlVal="—", pnlPct="—";
-    try{
-      for (let i=0; i<data.portfolio.length; i++){
-        const key = String(data.portfolio[i][0]||"").toLowerCase();
-        const val = data.portfolio[i][1];
-        if (key.includes("свободн")) free = val;
-        if (key.includes("стоим") || key.includes("объем")) total = val;
-        if (key.includes("pnl usd") || key.includes("pnl $") || key.includes("pnl ₽")) pnlVal = val;
-        if (key.includes("pnl %")) pnlPct = val;
-      }
-    }catch(_){}
-
-    if(currentMode === "invest"){
-      document.getElementById('pfFree').textContent = "Свободные ₽: " + formatNum(free);
-      document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
-      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
-    } else {
-      document.getElementById('pfFree').textContent = "Свободные $: " + formatNum(free);
-      document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total);
-      applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
+    if (data.summary){
+      total  = data.summary.totalUSD || "—";
+      pnlVal = data.summary.pnlUSD   || "—";
+      pnlPct = data.summary.pnlPct   || "—";
     }
+
+    document.getElementById('pfFree').textContent = 
+      (currentMode==="invest" ? "Свободные ₽: —" : "Свободные $: —");
+
+    document.getElementById('pfTotal').textContent = 
+      (currentMode==="invest" ? "Объем ₽: " : "Объем $: ") + formatNum(total);
+
+    applyPillClass(document.getElementById('pfPnlRub'), pnlVal, 
+      currentMode==="invest" ? "PNL ₽" : "PNL $");
+
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
     document.getElementById('updated').textContent=new Date().toLocaleString('ru-RU');
