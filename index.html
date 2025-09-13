@@ -235,17 +235,15 @@ async function loadData(){
           const row = data.portfolio[i];
           const mark = String(row[8] || "").toLowerCase();
 
-          if (mark.includes("💰") || mark.includes("стоимость")) {
-            total = row[9] || row[8] || row[row.length-1];
+          if (mark.includes("💰")) {
+            total = row[row.length-1]; // последняя колонка = число
           }
           if (mark.includes("📈")) {
-            pnlVal = row[9] || row[8] || row[row.length-1];
+            pnlVal = row[row.length-1];
           }
           if (mark.includes("📊")) {
-            pnlPct = row[9] || row[8] || row[row.length-1];
+            pnlPct = row[row.length-1];
           }
-          if (String(row[0]||"").includes("USDT")) {
-            free = row[5] || row[4];
           }
         }
       }
