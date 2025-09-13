@@ -214,7 +214,7 @@ async function loadData(){
       } else {
         for (const r of data.portfolio){
           const label = String(r[0]||'').toLowerCase();
-          const val = r[1];
+          const val = r[1]; // <-- всегда вторая колонка
           if (label.includes('свободн')) free = val;
           if (label.includes('💰')) total = val;
           if (label.includes('📈')) pnlVal = val;
