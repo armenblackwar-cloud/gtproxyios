@@ -164,4 +164,178 @@ function fmtNum(val) {
 
 // Формат PNL % — умножаем на 100 и добавляем знак %
 function fmtInvestPct(val) {
-  const num
+  const num = parseFloat(val) * 100;
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
+}
+
+// Формат времени (строка ISO → человекочитаемое по Москве)
+function fmtRuDate(str) {
+  try {
+    const dt = new Date(str);
+    if (isNaN(dt.getTime())) return str;
+    dt.setHours(dt.getHours() + 3); // Москва: UTC+3
+    return dt.toLocaleString('ru-RU', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).replace(',', '');
+  } catch(e) { return str; }
+}
+
+// ===== Шапка pill =====
+function setPillWithLabel(id, label, value, formatted, symbol = '') {
+  const el = document.getElementById(id);
+  const cls = clsPnL(value);
+  el.className = `pill ${cls}`;
+  el.textContent = `${label} ${formatted}${symbol}`;
+}
+
+// ===== Render =====
+function renderTable(id, rows){
+  const table = document.getElementById(id);
+  table.innerHTML = "";
+  if (!rows || !rows.length){
+    table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
+    return;
+  }
+  rows.forEach((row,i)=>{
+    let filteredRow = row;
+    if (id==='orders'){ 
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
+    }
+    if (id==='portfolio'){ 
+      filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
+    }
+
+    const firstCell = String(filteredRow[0]||"").toLowerCase();
+    const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
+
+    const tr = document.createElement("tr");
+
+    if(isSection){
+      const td = document.createElement("td");
+      td.colSpan = filteredRow.length;
+      td.textContent = row[0];
+      td.className = "sectionRow";
+      tr.appendChild(td);
+    } else {
+      filteredRow.forEach((cell,j)=>{
+        const tag = i===0?"th":"td";
+        const td=document.createElement(tag);
+        let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
+        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+        // Красим PNL ₽ и PNL % по знаку
+        if (id==='portfolio' && i>0 && (j === 6 || j === 7)) td.className=clsPnL(val);
+
+        // ====== В режиме INVEST — преобразуем значения! ======
+        if (currentMode === "invest" && id === 'portfolio' && i > 0) {
+          if (j >= 2 && j <= 5) val = fmtNum(val);
+          if (j === 6) val = fmtRub(val);         // PNL ₽
+          if (j === 7) val = fmtInvestPct(val);   // PNL %
+        }
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+    }
+    table.appendChild(tr);
+  });
+}
+
+// ===== Load =====
+function findValueByTitle(portfolio, title) {
+  for (let i = 0; i < portfolio.length; i++) {
+    if (String(portfolio[i][9]).includes(title)) {
+      return portfolio[i + 1]?.[9] ?? "—";
+    }
+  }
+  return "—";
+}
+
+async function loadData(){
+  if (!currentMode) return;
+  try{
+    document.getElementById('status').textContent="Обновляю…";
+    document.getElementById('status').className="pill";
+    const res = await fetch(API_URLS[currentMode]);
+    const data = await res.json();
+
+    renderTable("portfolio", data.portfolio);
+    renderTable("orders", data.openOrders);
+    document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
+
+    let free="—", total="—", pnlVal="—", pnlPct="—", updated="—";
+
+    if(currentMode === "invest"){
+      free    = findValueByTitle(data.portfolio, "Свободные ₽");
+      total   = findValueByTitle(data.portfolio, "Общая стоимость портфеля");
+      pnlVal  = findValueByTitle(data.portfolio, "PNL ₽");
+      pnlPct  = findValueByTitle(data.portfolio, "PNL %");
+      updated = findValueByTitle(data.portfolio, "Время обновления");
+
+      setPillWithLabel('pfFree',      'Свободные ₽:', free, fmtRub(free));
+      setPillWithLabel('pfTotal',     'Объем ₽:',     total, fmtRub(total));
+      setPillWithLabel('pfPnlRub',    'PNL ₽:',       pnlVal, fmtRub(pnlVal), '');
+      setPillWithLabel('pfPnlPct',    'PNL %:',       pnlPct, fmtInvestPct(pnlPct), '');
+      document.getElementById('updated').textContent = fmtRuDate(updated);
+      document.getElementById('updated').className = "pill muted";
+    } else if(currentMode === "kripto"){
+      free    = findValueByTitle(data.portfolio, "Свободные $");
+      total   = findValueByTitle(data.portfolio, "Общая стоимость портфеля");
+      pnlPct  = findValueByTitle(data.portfolio, "Общий PnL %");
+      pnlVal  = findValueByTitle(data.portfolio, "Общий PnL $");
+      updated = findValueByTitle(data.portfolio, "Время обновления");
+
+      setPillWithLabel('pfFree',      'Свободные $:', free, fmtNum(free));
+      setPillWithLabel('pfTotal',     'Объем $:',     total, fmtNum(total));
+      setPillWithLabel('pfPnlRub',    'PNL $:',       pnlVal, fmtNum(pnlVal), '');
+      setPillWithLabel('pfPnlPct',    'PNL %:',       pnlPct, fmtNum(pnlPct), '%');
+      document.getElementById('updated').textContent = fmtRuDate(updated);
+      document.getElementById('updated').className = "pill muted";
+    }
+    document.getElementById('status').textContent="Онлайн";
+    document.getElementById('status').className="pill online";
+  }catch(e){
+    document.getElementById('status').textContent="Оффлайн";
+    document.getElementById('status').className="pill offline";
+  }
+}
+
+// Auto-refresh
+setInterval(loadData,60000);
+
+// Switch mode
+document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
+
+// Logout
+document.getElementById('logoutBtn').onclick=()=>{ 
+  localStorage.removeItem(STORAGE_KEY); 
+  localStorage.removeItem("gtbot_mode"); 
+  location.reload(); 
+};
+
+// Copy
+document.getElementById('copyBtn').onclick = () => {
+  function tableToText(id, title){
+    const rows = [...document.getElementById(id).rows];
+    if (!rows.length) return `${title}: нет данных\n`;
+    let text = `\n### ${title}\n`;
+    text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
+    return text;
+  }
+  let out = "📊 Данные GT-BOT\n";
+  out += tableToText("portfolio", "Портфель");
+  out += "\n";
+  out += tableToText("orders", "Открытые ордера");
+  navigator.clipboard.writeText(out).then(()=>alert("✅ Скопировано")).catch(()=>alert("⚠ Ошибка копирования"));
+};
+
+// Auto-start
+if (currentMode){ 
+  document.getElementById("startScreen").style.display="none"; 
+  document.getElementById("app").style.display="block"; 
+  updateModePill(); 
+  loadData(); 
+}
+</script>
+</body>
+</html>
