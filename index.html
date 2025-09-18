@@ -138,11 +138,24 @@ function updateModePill(){
 
 // ===== Helpers =====
 function clsPnL(v){
-  // Если значение содержит "-", красим красным, иначе зеленым
   const s = String(v);
   if (s === "" || s === "0" || s === "0,00" || s === "0.00" || s === "0%") return 'muted';
-  if (s.includes("-")) return 'neg';
+  if (parseFloat(s.replace(',','.')) < 0) return 'neg';
   return 'pos';
+}
+
+// Формат RUB (инвест)
+function fmtRub(val) {
+  const num = parseFloat(val);
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// Формат PNL % для инвест — умножаем на 100 и округляем
+function fmtInvestPct(val) {
+  const num = parseFloat(val) * 100;
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
 }
 
 // ===== Render =====
@@ -182,7 +195,11 @@ function renderTable(id, rows){
         // Красим PNL ₽ и PNL % по знаку
         if (id==='portfolio' && i>0 && (j === 6 || j === 7)) td.className=clsPnL(val);
 
-        // ====== В режиме INVEST — значения из таблицы как есть! ======
+        // ====== В режиме INVEST — преобразуем значения! ======
+        if (currentMode === "invest" && id === 'portfolio' && i > 0) {
+          if (j === 6) val = fmtRub(val);         // PNL ₽
+          if (j === 7) val = fmtInvestPct(val);   // PNL %
+        }
         td.textContent = val;
         tr.appendChild(td);
       });
@@ -222,10 +239,10 @@ async function loadData(){
       pnlPct  = findValueByTitle(data.portfolio, "PNL %");
       updated = findValueByTitle(data.portfolio, "Время обновления");
 
-      document.getElementById('pfFree').textContent = "Свободные ₽: " + free;
-      document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
-      document.getElementById('pfPnlRub').textContent = "PNL ₽: " + pnlVal;
-      document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + fmtRub(free);
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + fmtRub(total);
+      document.getElementById('pfPnlRub').textContent = "PNL ₽: " + fmtRub(pnlVal);
+      document.getElementById('pfPnlPct').textContent = "PNL %: " + fmtInvestPct(pnlPct);
     } else if(currentMode === "kripto"){
       free    = findValueByTitle(data.portfolio, "Свободные $");
       total   = findValueByTitle(data.portfolio, "Общая стоимость портфеля");
