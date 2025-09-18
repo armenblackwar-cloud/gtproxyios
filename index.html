@@ -182,12 +182,19 @@ function fmtRuDate(str) {
   } catch(e) { return str; }
 }
 
-// ===== Шапка pill =====
+// ===== Crypto PNL — сохраняем точность из таблицы! =====
+function fmtCryptoPnl(val, symbol) {
+  if (!val || val === "" || val === "—" || isNaN(parseFloat(val))) return "—";
+  // Сохраняем точность из таблицы!
+  let str = String(val).replace('.', ',');
+  return str + symbol;
+}
+
 function setPillWithLabel(id, label, value, formatted, symbol = '') {
   const el = document.getElementById(id);
   const cls = clsPnL(value);
   el.className = `pill ${cls}`;
-  el.textContent = `${label} ${formatted}${symbol}`;
+  el.textContent = `${label} ${formatted}`;
 }
 
 // ===== Render =====
@@ -285,10 +292,10 @@ async function loadData(){
       pnlVal  = findValueByTitle(data.portfolio, "Общий PnL $");
       updated = findValueByTitle(data.portfolio, "Время обновления");
 
-      setPillWithLabel('pfFree',      'Свободные $:', free, fmtNum(free));
-      setPillWithLabel('pfTotal',     'Объем $:',     total, fmtNum(total));
-      setPillWithLabel('pfPnlRub',    'PNL $:',       pnlVal, fmtNum(pnlVal), '');
-      setPillWithLabel('pfPnlPct',    'PNL %:',       pnlPct, fmtNum(pnlPct), '%');
+      setPillWithLabel('pfFree',      'Свободные $:', free, fmtCryptoPnl(free, ''));
+      setPillWithLabel('pfTotal',     'Объем $:',     total, fmtCryptoPnl(total, ''));
+      setPillWithLabel('pfPnlRub',    'PNL $:',       pnlVal, fmtCryptoPnl(pnlVal, ''));
+      setPillWithLabel('pfPnlPct',    'PNL %:',       pnlPct, fmtCryptoPnl(pnlPct, '%'));
       document.getElementById('updated').textContent = fmtRuDate(updated);
       document.getElementById('updated').className = "pill muted";
     }
