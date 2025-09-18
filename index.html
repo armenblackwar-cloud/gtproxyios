@@ -130,7 +130,7 @@ function clsPnL(v){
 function formatNum(val){
   const num = parseFloat(val);
   if(Number.isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 function applyPillClass(el, value, label){
   const num = parseFloat(value);
@@ -224,7 +224,6 @@ async function loadData(){
           }
         }
       } else {
-        // Для CRYPTO напрямую берём из I2, I4, I6, I8
         free    = data.portfolio[2][9];  // J3
         total   = data.portfolio[4][9];  // J5
         pnlVal  = data.portfolio[6][9];  // J7
@@ -262,6 +261,7 @@ document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kri
 // Logout
 document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
 
+// Copy to clipboard
 document.getElementById('copyBtn').onclick = () => {
   function tableToText(id, title){
     const rows = [...document.getElementById(id).rows];
