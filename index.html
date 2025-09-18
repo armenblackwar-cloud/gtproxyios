@@ -143,13 +143,8 @@ function clsPnL(v){
   return num > 0 ? 'pos' : 'neg';
 }
 
-// Формат RUB/USD
+// Формат RUB (инвест)
 function fmtRub(val) {
-  const num = parseFloat(val);
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-function fmtUsd(val) {
   const num = parseFloat(val);
   if (isNaN(num)) return val;
   return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -158,13 +153,6 @@ function fmtUsd(val) {
 // Формат PNL % для инвест — умножаем на 100 и округляем
 function fmtInvestPct(val) {
   const num = parseFloat(val) * 100;
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
-}
-
-// Формат PNL % для крипто — просто две цифры (их не надо умножать)
-function fmtCryptoPct(val) {
-  const num = parseFloat(val);
   if (isNaN(num)) return val;
   return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
 }
@@ -203,17 +191,21 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
+
         // Красим BUY/SELL
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
         // Красим PNL в портфеле
         if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)) td.className=clsPnL(val);
-        // Форматируем PNL % и PNL ₽ (только для invest)
-        if (currentMode==="invest" && id==='portfolio' && i>0 && j===6) val = fmtInvestPct(val);
-        if (currentMode==="invest" && id==='portfolio' && i>0 && j===7) val = fmtRub(val);
-        // Для крипто: просто как есть, можно добавить % если хочется (если там доли)
-        if (currentMode==="kripto" && id==='portfolio' && i>0 && j===6) val = fmtCryptoPct(val);
-        if (currentMode==="kripto" && id==='portfolio' && i>0 && j===7) val = fmtUsd(val);
-        td.textContent=val;
+
+        // ======= ФОРМАТИРОВАНИЕ =======
+        if (currentMode === "invest") {
+          // Инвест: форматируем проценты и рубли
+          if (id==='portfolio' && i>0 && j===6) val = fmtInvestPct(val); // PNL %
+          if (id==='portfolio' && i>0 && j===7) val = fmtRub(val);       // PNL ₽
+        }
+        // Крипто — ничего не форматируем!
+
+        td.textContent = val;
         tr.appendChild(td);
       });
     }
@@ -263,10 +255,10 @@ async function loadData(){
       pnlVal  = findValueByTitle(data.portfolio, "Общий PnL $");
       updated = findValueByTitle(data.portfolio, "Время обновления");
 
-      document.getElementById('pfFree').textContent = "Свободные $: " + fmtUsd(free);
-      document.getElementById('pfTotal').textContent = "Объем $: " + fmtUsd(total);
-      document.getElementById('pfPnlRub').textContent = "PNL $: " + fmtUsd(pnlVal);
-      document.getElementById('pfPnlPct').textContent = "PNL %: " + fmtCryptoPct(pnlPct);
+      document.getElementById('pfFree').textContent = "Свободные $: " + free;
+      document.getElementById('pfTotal').textContent = "Объем $: " + total;
+      document.getElementById('pfPnlRub').textContent = "PNL $: " + pnlVal;
+      document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
     }
 
     document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
