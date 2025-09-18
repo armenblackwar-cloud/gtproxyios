@@ -129,7 +129,7 @@ function clsPnL(v){
 function formatNum(val){
   const num = parseFloat(val);
   if(Number.isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 function applyPillClass(el, value, label){
   const num = parseFloat(value);
