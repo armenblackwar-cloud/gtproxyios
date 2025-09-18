@@ -218,7 +218,6 @@ async function loadData(){
           if (cell.includes("pnl ₽")) pnlVal = value;
           if (cell.includes("pnl %")) pnlPct = value;
         }
-      }
       } else {
         // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
         free    = data.portfolio[2]?.[9]  ?? "—";
