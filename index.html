@@ -223,11 +223,11 @@ async function loadData(){
           }
         }
       } else {
-        // Для CRYPTO напрямую берём из I2, I4, I6, I8
-        total   = data.portfolio[0][9];  // I2
-        pnlVal  = data.portfolio[1][9];  // I4
-        pnlPct  = data.portfolio[2][9];  // I6
-        updated = data.portfolio[3][9];  // I8
+        // Для CRYPTO берём из I2, I4, I6, I8
+          total   = data.portfolio[0][9];  // I2
+          pnlVal  = data.portfolio[1][9];  // I4
+          pnlPct  = data.portfolio[2][9];  // I6
+          updated = data.portfolio[3][9];  // I8
       }
     }catch(_){}
 
