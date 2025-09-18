@@ -19,7 +19,8 @@
     .pill.pos{background:#193e2d; color:var(--green);}
     .pill.neg{background:#3e1919; color:var(--red);}
     .pill.muted{background:#333; color:var(--muted);}
-    .logout{background:#333; cursor:pointer; padding:6px 10px; margin:10px auto; display:block; border-radius:8px; font-size:12px;}
+    .logout,.copyBtn{background:#333; cursor:pointer; padding:6px 10px; margin:10px; display:inline-block; border-radius:8px; font-size:12px;}
+    .footer-buttons{display:flex; justify-content:space-between; align-items:center; margin:0 10px 10px;}
     .header-top, .header-bottom{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     .header-bottom{width:100%; justify-content:space-between}
     .header-bottom .pill{flex:1; min-width:0}
@@ -81,7 +82,10 @@
     📱 Добавь на iPhone: Поделиться → «На экран Домой»
   </footer>
 
-  <button id="logoutBtn" class="logout">🚪 Выйти</button>
+  <div class="footer-buttons">
+    <button id="logoutBtn" class="logout">🚪 Выйти</button>
+    <button id="copyBtn" class="copyBtn">📋 Копировать</button>
+  </div>
 </div>
 
 <script>
@@ -121,34 +125,25 @@ function updateModePill(){
 }
 
 // ===== Helpers =====
-function toNum(v){
-  if (v === null || v === undefined) return NaN;
-  if (typeof v === 'number') return v;
-  const s = String(v)
-    .replace(/\u00A0/g, '')   // неразрывные пробелы
-    .replace(/\s+/g, '')      // обычные пробелы
-    .replace(',', '.');       // запятая -> точка
-  const n = Number(s);
-  return Number.isFinite(n) ? n : NaN;
+function clsPnL(v){
+  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
+  if (isNaN(num) || num === 0) return 'muted';
+  return num > 0 ? 'pos' : 'neg';
 }
-
-function formatNum(v){
-  const n = toNum(v);
-  if (Number.isNaN(n)) return v;
-
-  // округляем до 2-х знаков, но сохраняем реальное значение
-  return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function formatNum(val){
+  const num = parseFloat(val);
+  if(Number.isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
-
 function applyPillClass(el, value, label){
-  const n = toNum(value);
-  if (Number.isNaN(n)){
+  const num = parseFloat(value);
+  if(isNaN(num)){
     el.className = "pill muted";
-    el.textContent = ${label}: —;
-    return;
+    el.textContent = label + ": —";
+  } else {
+    el.className = num > 0 ? "pill pos" : (num < 0 ? "pill neg" : "pill muted");
+    el.textContent = label + ": " + formatNum(num);
   }
-  el.className = n > 0 ? "pill pos" : n < 0 ? "pill neg" : "pill muted";
-  el.textContent = ${label}: ${formatNum(n)};
 }
 
 // ===== Render =====
@@ -167,7 +162,7 @@ function renderTable(id, rows){
     }
     if (id==='portfolio'){ 
       if(currentMode==="kripto"){
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
+        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6]];
       } else {
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       }
@@ -189,10 +184,7 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-        if (tag === "td" && val !== ""){
-         const n = toNum(val);
-         if (!Number.isNaN(n)) val = formatNum(n);
-        }
+        if(tag==="td" && val!==""){ if(!isNaN(val)) val = formatNum(val); }
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
         if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
         td.textContent=val;
@@ -234,12 +226,11 @@ async function loadData(){
           }
         }
       } else {
-        // Для CRYPTO напрямую берём из I2, I4, I6, I8
-        free    = data.portfolio[2][9];  // I2 
-        total   = data.portfolio[4][9];  // I2
-        pnlVal  = data.portfolio[6][9];  // I4
-        pnlPct  = data.portfolio[8][9];  // I6
-        updated = data.portfolio[10][9];  // I8
+        free    = data.portfolio[2][9];  // J3
+        total   = data.portfolio[4][9];  // J5
+        pnlVal  = data.portfolio[6][9];  // J7
+        pnlPct  = data.portfolio[8][9];  // J9
+        updated = data.portfolio[10][9]; // J11
       }
     }catch(_){}
 
@@ -272,8 +263,33 @@ document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kri
 // Logout
 document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
 
+// Copy to clipboard
+document.getElementById('copyBtn').onclick = () => {
+  function tableToText(id, title){
+    const rows = [...document.getElementById(id).rows];
+    if (!rows.length) return `${title}: нет данных\n`;
+    let text = `\n### ${title}\n`;
+    text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
+    return text;
+  }
+  let out = "📊 Данные GT-BOT\n";
+  out += tableToText("portfolio", "Портфель");
+  out += "\n";
+  out += tableToText("orders", "Открытые ордера");
+  navigator.clipboard.writeText(out).then(()=>{
+    alert("✅ Скопировано в буфер");
+  }).catch(()=>{
+    alert("⚠ Не удалось скопировать");
+  });
+};
+
 // Auto-start
-if (currentMode){ document.getElementById("startScreen").style.display="none"; document.getElementById("app").style.display="block"; updateModePill(); loadData(); }
+if (currentMode){ 
+  document.getElementById("startScreen").style.display="none"; 
+  document.getElementById("app").style.display="block"; 
+  updateModePill(); 
+  loadData(); 
+}
 </script>
 </body>
 </html>
