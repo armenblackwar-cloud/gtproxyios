@@ -224,10 +224,11 @@ async function loadData(){
         }
       } else {
         // Для CRYPTO напрямую берём из I2, I4, I6, I8
-        total   = data.portfolio[0][9];  // I2
-        pnlVal  = data.portfolio[1][9];  // I4
-        pnlPct  = data.portfolio[2][9];  // I6
-        updated = data.portfolio[3][9];  // I8
+        free    = data.portfolio[3][9];  // J3
+        total   = data.portfolio[5][9];  // J5
+        pnlVal  = data.portfolio[7][9];  // J7
+        pnlPct  = data.portfolio[9][9];  // J9
+        updated = data.portfolio[11][9]; // J11
       }
     }catch(_){}
 
