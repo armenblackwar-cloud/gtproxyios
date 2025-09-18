@@ -4,18 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GT · Dashboard</title>
-  <!-- PWA manifest -->
-  <link rel="manifest" href="manifest.json">
-  <!-- iOS Meta -->
+  <link rel="manifest" href="manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="GT Dashboard">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <!-- App Icons: замените на свои -->
+  <meta name="theme-color" content="#171a21" />
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
-  <!-- Theme -->
-  <meta name="theme-color" content="#171a21" />
   <style>
     :root{
       --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
@@ -24,24 +20,24 @@
     html,body{height:100%;}
     body{margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
       background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:env(safe-area-inset-bottom);}
-    header{position:sticky; top:0; background:#1a1f28; padding:8px 12px; font-size:12px; display:flex; flex-direction:column; gap:4px; z-index:2;}
-    h1{font-size:18px; margin:0; color:var(--yellow);}
-    .pill{padding:4px 16px; border-radius:20px; font-size:13px; font-weight:600; text-align:center; display:inline-block; min-width:90px; margin-bottom:3px;}
+    header{position:sticky; top:0; background:#1a1f28; padding:8px 10px 2px 10px; font-size:12px; display:flex; flex-direction:column; gap:4px; z-index:2;}
+    h1{font-size:17px; margin:0; color:var(--yellow);}
+    .pill{padding:4px 10px; border-radius:18px; font-size:13px; font-weight:600; text-align:center; display:inline-block; min-width:80px; margin-bottom:2px;}
     .pill.online{background:#193e2d; color:var(--green);}
     .pill.offline{background:#3e1919; color:var(--red);}
     .pill.pos{background:#193e2d; color:var(--green);}
     .pill.neg{background:#3e1919; color:var(--red);}
     .pill.muted{background:#333; color:var(--muted);}
-    .logout{background:#333; cursor:pointer; padding:10px 18px; margin:10px 5px; display:inline-block; border-radius:10px; font-size:14px;}
-    .header-top, .header-bottom{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .header-bottom{width:100%; justify-content:space-between; margin-top:2px;}
-    .header-bottom .pill{margin-right:8px;}
-    main{padding:10px 5px; display:grid; gap:12px}
+    .logout{background:#333; cursor:pointer; padding:8px 14px; margin:8px 4px; display:inline-block; border-radius:10px; font-size:14px;}
+    .header-top{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:space-between;}
+    .header-pills-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:2px;}
+    .header-pills-row:last-child{margin-bottom:0;}
+    main{padding:8px 2px; display:grid; gap:9px}
     .card{background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden}
-    .card h2{margin:0; padding:10px; font-size:15px; border-bottom:1px solid var(--border); color:var(--yellow); display:flex; align-items:center; gap:8px;}
+    .card h2{margin:0; padding:9px 8px; font-size:15px; border-bottom:1px solid var(--border); color:var(--yellow); display:flex; align-items:center; gap:8px;}
     .grid{overflow-x:auto}
     table{width:100%; border-collapse:collapse; font-size:10px; table-layout:auto;}
-    th,td{padding:6px 4px;border:1px solid var(--border);text-align:center;white-space:normal;word-wrap:break-word;max-width:120px;}
+    th,td{padding:5px 2px;border:1px solid var(--border);text-align:center;white-space:normal;word-wrap:break-word;max-width:100px;}
     th{background:#1a1f28; color:#c8ccd3; font-size:11px; position:sticky; top:0}
     .buy{color:var(--green); font-weight:600}
     .sell{color:var(--red); font-weight:600}
@@ -51,32 +47,28 @@
     .sectionRow{text-align:center; font-weight:700; color:var(--yellow); background:#222; padding:4px;}
     footer{padding:10px; font-size:11px; color:var(--muted); text-align:center}
     #startScreen{display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh; gap:24px; background:var(--bg);}
-    .startBtn{background:var(--yellow); color:#000; font-weight:700; border:none; border-radius:12px; padding:20px 40px; font-size:20px; cursor:pointer; box-shadow:0 2px 8px #0001;}
+    .startBtn{background:var(--yellow); color:#000; font-weight:700; border:none; border-radius:12px; padding:17px 27px; font-size:18px; cursor:pointer; box-shadow:0 2px 8px #0001;}
     .btnRow{text-align:center; margin:12px 0;}
-    /* Иконка в шапке */
-    .logo-icon{width:26px; height:26px; vertical-align:middle; margin-right:7px;}
+    .logo-icon{width:19px; height:19px; vertical-align:middle; margin-right:6px;}
     @media (max-width:700px){
-      .header-bottom{flex-direction:column; align-items:flex-start;}
-      .header-bottom .pill{margin:4px 0;}
+      .header-top{flex-direction:column;align-items:flex-start;}
+      .header-pills-row{gap:6px;}
       .card h2{font-size:16px;}
       th,td{font-size:11px;}
       main{padding:6px 2px;}
     }
     @media (max-width:450px){
-      .pill{font-size:12px;padding:4px 10px;}
+      .pill{font-size:12px;padding:3px 8px;}
       .card h2{font-size:14px;padding:7px;}
-      th,td{font-size:10px;}
-      .startBtn{font-size:16px;padding:14px 25px;}
+      th,td{font-size:9px;padding:3px 1px;}
+      .startBtn{font-size:15px;padding:11px 12px;}
     }
   </style>
 </head>
 <body>
 
 <div id="startScreen">
-  <h1>
-    <img src="icons/icon-192.png" alt="GT" class="logo-icon" />
-    GT
-  </h1>
+  <h1><img src="icons/icon-192.png" alt="GT" class="logo-icon" /> GT</h1>
   <button class="startBtn" onclick="chooseMode('kripto')">GT-CRYPTO</button>
   <button class="startBtn" onclick="chooseMode('invest')">GT-INVEST</button>
 </div>
@@ -84,43 +76,35 @@
 <div id="app" style="display:none">
   <header>
     <div class="header-top">
-      <h1 id="modePill">
-        <img src="icons/icon-192.png" alt="GT" class="logo-icon" />
-        —
-      </h1>
+      <h1 id="modePill"><img src="icons/icon-192.png" alt="GT" class="logo-icon" /> —</h1>
       <span id="status" class="pill">—</span>
       <span id="updated" class="pill muted">—</span>
       <button id="switchBtn" class="pill">🔄 Переключить</button>
     </div>
-    <div class="header-bottom">
+    <div class="header-pills-row">
       <span id="pfFree" class="pill muted">Свободные: —</span>
+      <span id="pfTotal" class="pill muted">Объем: —</span>
+    </div>
+    <div class="header-pills-row">
       <span id="pfPnlPct" class="pill muted">PNL %: —</span>
       <span id="pfPnlRub" class="pill muted">PNL ₽/$: —</span>
-      <span id="pfTotal" class="pill muted">Объем: —</span>
     </div>
   </header>
 
   <main>
     <section class="card">
-      <h2>
-        <img src="icons/portfolio.png" alt="Портфель" style="width:22px;height:22px;vertical-align:middle;">
-        Портфель
-      </h2>
+      <h2>📈 Портфель</h2>
       <div class="grid"><table id="portfolio"></table></div>
     </section>
-
     <section class="card">
-      <h2>
-        <img src="icons/orders.png" alt="Ордера" style="width:22px;height:22px;vertical-align:middle;">
-        Открытые ордера (<b id="ooCount">—</b>)
-      </h2>
+      <h2>📑 Открытые ордера (<b id="ooCount">—</b>)</h2>
       <div class="grid"><table id="orders"></table></div>
     </section>
   </main>
 
   <footer>
     📱 На iPhone: Поделиться → «На экран Домой»<br>
-    <span style="font-size:90%">Эта страница работает как приложение (PWA)</span>
+    <span style="font-size:90%">Это приложение работает offline (PWA)</span>
   </footer>
 
   <div class="btnRow">
@@ -297,8 +281,8 @@ async function loadData(){
       updated = findValueByTitle(data.portfolio, "Время обновления");
       setPillWithLabel('pfFree',      'Свободные ₽:', free, fmtRub(free));
       setPillWithLabel('pfTotal',     'Объем ₽:',     total, fmtRub(total));
-      setPillWithLabel('pfPnlRub',    'PNL ₽:',       pnlVal, fmtRub(pnlVal), '');
       setPillWithLabel('pfPnlPct',    'PNL %:',       pnlPct, fmtInvestPct(pnlPct), '');
+      setPillWithLabel('pfPnlRub',    'PNL ₽:',       pnlVal, fmtRub(pnlVal), '');
       document.getElementById('updated').textContent = fmtRuDate(updated);
       document.getElementById('updated').className = "pill muted";
     } else if(currentMode === "kripto"){
@@ -309,8 +293,8 @@ async function loadData(){
       updated = findValueByTitle(data.portfolio, "Время обновления");
       setPillWithLabel('pfFree',      'Свободные $:', free, fmtCryptoPnl(free, ''));
       setPillWithLabel('pfTotal',     'Объем $:',     total, fmtCryptoPnl(total, ''));
-      setPillWithLabel('pfPnlRub',    'PNL $:',       pnlVal, fmtCryptoPnl(pnlVal, ''));
       setPillWithLabel('pfPnlPct',    'PNL %:',       pnlPct, fmtCryptoPnl(pnlPct, '%'));
+      setPillWithLabel('pfPnlRub',    'PNL $:',       pnlVal, fmtCryptoPnl(pnlVal, ''));
       document.getElementById('updated').textContent = fmtRuDate(updated);
       document.getElementById('updated').className = "pill muted";
     }
@@ -324,16 +308,12 @@ async function loadData(){
 
 // Auto-refresh
 setInterval(loadData,60000);
-
-// Switch mode
 document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
-// Logout
 document.getElementById('logoutBtn').onclick=()=>{ 
   localStorage.removeItem(STORAGE_KEY); 
   localStorage.removeItem("gtbot_mode"); 
   location.reload(); 
 };
-// Copy
 document.getElementById('copyBtn').onclick = () => {
   function tableToText(id, title){
     const rows = [...document.getElementById(id).rows];
@@ -348,14 +328,12 @@ document.getElementById('copyBtn').onclick = () => {
   out += tableToText("orders", "Открытые ордера");
   navigator.clipboard.writeText(out).then(()=>alert("✅ Скопировано")).catch(()=>alert("⚠ Ошибка копирования"));
 };
-// Auto-start
 if (currentMode){ 
   document.getElementById("startScreen").style.display="none"; 
   document.getElementById("app").style.display="block"; 
   updateModePill(); 
   loadData(); 
 }
-
 // PWA install
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
