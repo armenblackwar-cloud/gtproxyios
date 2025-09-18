@@ -13,7 +13,7 @@
       background:var(--bg); color:var(--text); padding-top: env(safe-area-inset-top);}
     header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px; display:flex; flex-direction:column; gap:4px}
     h1{font-size:14px; margin:0; color:var(--yellow);}
-    .pill{padding:2px 6px; border-radius:8px; font-size:10px; font-weight:600; text-align:center}
+    .pill{padding:2px 6px; border-radius:8px; font-size:10px; font-weight:600; text-align:center; display:inline-block; min-width:54px;}
     .pill.online{background:#193e2d; color:var(--green);}
     .pill.offline{background:#3e1919; color:var(--red);}
     .pill.pos{background:#193e2d; color:var(--green);}
@@ -23,6 +23,7 @@
     .header-top, .header-bottom{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     .header-bottom{width:100%; justify-content:space-between}
     .header-bottom .pill{flex:1; min-width:0}
+    .header-bottom .pill-label{color:var(--muted);font-weight:normal;}
     main{padding:6px; display:grid; gap:8px}
     .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
     .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
@@ -59,10 +60,16 @@
       <button id="switchBtn" class="pill">🔄 Переключить</button>
     </div>
     <div class="header-bottom">
-      <span id="pfFree" class="pill">Свободные: —</span>
-      <span id="pfPnlPct" class="pill">PNL %: —</span>
-      <span id="pfPnlRub" class="pill">PNL ₽/$: —</span>
-      <span id="pfTotal" class="pill">Объем: —</span>
+      <span id="pfFree" class="pill pill-label">Свободные: —</span>
+      <span>
+        <span class="pill-label">PNL %:</span>
+        <span id="pfPnlPct" class="pill muted">—</span>
+      </span>
+      <span>
+        <span class="pill-label">PNL ₽/$:</span>
+        <span id="pfPnlRub" class="pill muted">—</span>
+      </span>
+      <span id="pfTotal" class="pill pill-label">Объем: —</span>
     </div>
   </header>
 
@@ -143,6 +150,11 @@ function clsPnL(v){
   if (parseFloat(s.replace(',','.')) < 0) return 'neg';
   return 'pos';
 }
+function pillHtml(val, type="rub") {
+  // type: "rub", "pct", "usd"
+  const cls = clsPnL(val);
+  return `<span class="pill ${cls}">${val}</span>`;
+}
 
 // Формат RUB (инвест) и все суммы с пробелом-разделителем
 function fmtRub(val) {
@@ -167,12 +179,10 @@ function fmtInvestPct(val) {
 
 // Формат времени (строка ISO → человекочитаемое по Москве)
 function fmtRuDate(str) {
-  // str типа "2025-09-18T22:26:29.451Z"
   try {
     const dt = new Date(str);
     if (isNaN(dt.getTime())) return str;
-    // Москва: UTC+3
-    dt.setHours(dt.getHours() + 3);
+    dt.setHours(dt.getHours() + 3); // Москва: UTC+3
     return dt.toLocaleString('ru-RU', {
       year: 'numeric', month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit', second: '2-digit'
@@ -219,7 +229,6 @@ function renderTable(id, rows){
 
         // ====== В режиме INVEST — преобразуем значения! ======
         if (currentMode === "invest" && id === 'portfolio' && i > 0) {
-          // "Текущая цена", "Средняя цена", "Количество", "Общий объём ₽" — j=2..5
           if (j >= 2 && j <= 5) val = fmtNum(val);
           if (j === 6) val = fmtRub(val);         // PNL ₽
           if (j === 7) val = fmtInvestPct(val);   // PNL %
@@ -265,8 +274,11 @@ async function loadData(){
 
       document.getElementById('pfFree').textContent = "Свободные ₽: " + fmtRub(free);
       document.getElementById('pfTotal').textContent = "Объем ₽: " + fmtRub(total);
-      document.getElementById('pfPnlRub').textContent = "PNL ₽: " + fmtRub(pnlVal);
-      document.getElementById('pfPnlPct').textContent = "PNL %: " + fmtInvestPct(pnlPct);
+
+      // Цветные pill для PNL ₽ и PNL %
+      document.getElementById('pfPnlRub').innerHTML = pillHtml(fmtRub(pnlVal), "rub");
+      document.getElementById('pfPnlPct').innerHTML = pillHtml(fmtInvestPct(pnlPct), "pct");
+
       document.getElementById('updated').textContent = fmtRuDate(updated);
     } else if(currentMode === "kripto"){
       free    = findValueByTitle(data.portfolio, "Свободные $");
@@ -277,8 +289,11 @@ async function loadData(){
 
       document.getElementById('pfFree').textContent = "Свободные $: " + fmtNum(free);
       document.getElementById('pfTotal').textContent = "Объем $: " + fmtNum(total);
-      document.getElementById('pfPnlRub').textContent = "PNL $: " + fmtNum(pnlVal);
-      document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
+
+      // Цветные pill для PNL $ и PNL %
+      document.getElementById('pfPnlRub').innerHTML = pillHtml(fmtNum(pnlVal), "usd");
+      document.getElementById('pfPnlPct').innerHTML = pillHtml(fmtNum(pnlPct), "pct");
+
       document.getElementById('updated').textContent = fmtRuDate(updated);
     }
     document.getElementById('status').textContent="Онлайн";
