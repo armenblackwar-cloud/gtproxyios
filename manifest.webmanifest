@@ -1,18 +1,11 @@
 {
-  "name": "GT-Бот · Дашборд",
-  "short_name": "GT-Бот",
-  "start_url": "./index.html",
+  "name": "GT-BOT",
+  "short_name": "GT",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#0f1115",
-  "theme_color": "#111111",
-  "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
-}
-{
-  "name": "GT-Бот",
-  "short_name": "GT-Bot",
+  "background_color": "#171a21",
+  "theme_color": "#171a21",
+  "description": "GT Dashboard for investments and crypto.",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -24,10 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#0f0f12",
-  "background_color": "#0f0f12"
+  ]
 }
-
