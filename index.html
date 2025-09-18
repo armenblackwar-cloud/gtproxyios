@@ -124,12 +124,6 @@ function updateModePill(){
     currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
 }
 
-function formatNum(val){
-  const num = parseFloat(val);
-  if(Number.isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-}
-
 // ===== Helpers =====
 function clsPnL(v){
   const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
@@ -216,13 +210,13 @@ async function loadData(){
       if(currentMode === "invest"){
         for (let i=0; i<data.portfolio.length; i++){
           const row = data.portfolio[i];
-          const cell = String(row[0] || "").toLowerCase();
-          const value = row[1] || row[5] || row[7] || row[9];
-
-          if (cell.includes("свободные")) free = value;
-          if (cell.includes("стоимость")) total = value;
-          if (cell.includes("pnl ₽")) pnlVal = value;
-          if (cell.includes("pnl %")) pnlPct = value;
+          const ticker = String(row[0] || "").toUpperCase();
+          if (ticker === "RUB") free = row[5];
+          const k = String(row[9] || "").toLowerCase();
+          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
+          if (k.includes("стоимость")) total = v;
+          if (k.includes("pnl ₽")) pnlVal = v;
+          if (k.includes("pnl %")) pnlPct = v;
         }
       } else {
         // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
@@ -253,7 +247,7 @@ async function loadData(){
     document.getElementById('status').className="pill offline";
   }
 }
-  
+
 // Auto-refresh
 setInterval(loadData,60000);
 
@@ -270,8 +264,8 @@ document.getElementById('logoutBtn').onclick=()=>{
 document.getElementById('copyBtn').onclick = () => {
   function tableToText(id, title){
     const rows = [...document.getElementById(id).rows];
-    if (!rows.length) return `${title}: нет данных\n`;
-    let text = `\n### ${title}\n`;
+    if (!rows.length) return ${title}: нет данных\n;
+    let text = \n### ${title}\n;
     text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
     return text;
   }
