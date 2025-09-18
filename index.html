@@ -19,7 +19,7 @@
     .pill.pos{background:#193e2d; color:var(--green);}
     .pill.neg{background:#3e1919; color:var(--red);}
     .pill.muted{background:#333; color:var(--muted);}
-    .logout{background:#333; cursor:pointer; padding:6px 10px; margin:10px 5px; display:inline-block; border-radius:8px; font-size:12px;}
+    .logout, .copyBtn{background:#333; cursor:pointer; padding:6px 12px; margin:10px; border-radius:8px; font-size:12px;}
     .header-top, .header-bottom{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     .header-bottom{width:100%; justify-content:space-between}
     .header-bottom .pill{flex:1; min-width:0}
@@ -39,7 +39,7 @@
     footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
     #startScreen{display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; gap:20px}
     .startBtn{background:var(--yellow); color:#000; font-weight:700; border:none; border-radius:8px; padding:15px 25px; font-size:16px; cursor:pointer}
-    .btnRow{text-align:center; margin:10px 0;}
+    .bottomBtns{display:flex; justify-content:space-between; padding:0 20px;}
   </style>
 </head>
 <body>
@@ -61,8 +61,8 @@
     <div class="header-bottom">
       <span id="pfFree" class="pill">Свободные: —</span>
       <span id="pfPnlPct" class="pill">PNL %: —</span>
-      <span id="pfPnlRub" class="pill">PNL ₽/$: —</span>
-      <span id="pfTotal" class="pill">Объем: —</span>
+      <span id="pfPnlRub" class="pill">PNL ₽: —</span>
+      <span id="pfTotal" class="pill">Объем ₽: —</span>
     </div>
   </header>
 
@@ -82,9 +82,9 @@
     📱 Добавь на iPhone: Поделиться → «На экран Домой»
   </footer>
 
-  <div class="btnRow">
+  <div class="bottomBtns">
     <button id="logoutBtn" class="logout">🚪 Выйти</button>
-    <button id="copyBtn" class="logout">📋 Копировать</button>
+    <button id="copyBtn" class="copyBtn">📋 Копировать</button>
   </div>
 </div>
 
@@ -130,16 +130,16 @@ function clsPnL(v){
   if (isNaN(num) || num === 0) return 'muted';
   return num > 0 ? 'pos' : 'neg';
 }
-function applyPillClassRaw(el, value, label){
+function formatNum(val){
+  const num = parseFloat(val);
+  if(Number.isNaN(num)) return val;
+  return num.toLocaleString('ru-RU',{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function applyPillClass(el, value, label){
   const num = parseFloat(value);
-  if(isNaN(num) || num===0){
-    el.className = "pill muted";
-  } else if(num > 0){
-    el.className = "pill pos";
-  } else {
-    el.className = "pill neg";
-  }
-  el.textContent = label + ": " + value;
+  if(isNaN(num)){ el.className="pill muted"; el.textContent=`${label}: —`; return; }
+  el.className = num>0 ? "pill pos" : num<0 ? "pill neg" : "pill muted";
+  el.textContent = `${label}: ${formatNum(num)}`;
 }
 
 // ===== Render =====
@@ -150,43 +150,22 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
-
   rows.forEach((row,i)=>{
     let filteredRow = row;
-    if (id==='orders'){ 
-      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
-    }
+    if (id==='orders'){ filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; }
     if (id==='portfolio'){ 
-      if(currentMode==="kripto"){
-        // теперь с PNL $
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
-      } else {
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
-      }
+      if(currentMode==="kripto"){ filteredRow = [row[0],row[1],row[2],row[3],row[4],row[5],row[6]]; }
+      else { filteredRow = [row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7]]; }
     }
-
-    const firstCell = String(filteredRow[0]||"").toLowerCase();
-    const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
-
-    const tr = document.createElement("tr");
-
-    if(isSection){
-      const td = document.createElement("td");
-      td.colSpan = filteredRow.length;
-      td.textContent = row[0];
-      td.className = "sectionRow";
-      tr.appendChild(td);
-    } else {
-      filteredRow.forEach((cell,j)=>{
-        const tag = i===0?"th":"td";
-        const td=document.createElement(tag);
-        let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
-        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
-        td.textContent=val;
-        tr.appendChild(td);
-      });
-    }
+    const tr=document.createElement("tr");
+    filteredRow.forEach((cell,j)=>{
+      const tag=i===0?"th":"td"; const td=document.createElement(tag);
+      let val=(cell===undefined||cell===null)?"":String(cell).trim();
+      if(tag==="td" && val!==""){ if(!isNaN(val)) val=formatNum(val); }
+      if(id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+      if(id==='portfolio' && i>0 && (j>=filteredRow.length-2)){ td.className=clsPnL(val); }
+      td.textContent=val; tr.appendChild(td);
+    });
     table.appendChild(tr);
   });
 }
@@ -207,39 +186,25 @@ async function loadData(){
     let free="—", total="—", pnlVal="—", pnlPct="—", updated="";
 
     try{
-      if(currentMode === "invest"){
-        for (let i=0; i<data.portfolio.length; i++){
-          const row = data.portfolio[i];
-          const ticker = String(row[0] || "").toUpperCase();
-          if (ticker === "RUB") free = row[5];
-          const k = String(row[9] || "").toLowerCase();
-          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
-          if (k.includes("стоимость")) total = v;
-          if (k.includes("pnl ₽")) pnlVal = v;
-          if (k.includes("pnl %")) pnlPct = v;
-        }
-      } else {
-        // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
-        free    = data.portfolio[2]?.[9]  ?? "—";
-        total   = data.portfolio[4]?.[9]  ?? "—";
-        pnlVal  = data.portfolio[6]?.[9]  ?? "—";
-        pnlPct  = data.portfolio[8]?.[9]  ?? "—";
-        updated = data.portfolio[10]?.[9] ?? "";
-      }
+      free    = data.portfolio[2][9];  // J3
+      total   = data.portfolio[4][9];  // J5
+      pnlVal  = data.portfolio[6][9];  // J7
+      pnlPct  = data.portfolio[8][9];  // J9
+      updated = data.portfolio[10][9]; // J11
     }catch(_){}
 
-    if(currentMode === "invest"){
-      document.getElementById('pfFree').textContent = "Свободные ₽: " + free;
-      document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
-      applyPillClassRaw(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
+    if(currentMode==="invest"){
+      document.getElementById('pfFree').textContent="Свободные ₽: "+formatNum(free);
+      document.getElementById('pfTotal').textContent="Объем ₽: "+formatNum(total);
+      applyPillClass(document.getElementById('pfPnlRub'), pnlVal,"PNL ₽");
     } else {
-      document.getElementById('pfFree').textContent = "Свободные $: " + free;
-      document.getElementById('pfTotal').textContent = "Объем $: " + total;
-      applyPillClassRaw(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
+      document.getElementById('pfFree').textContent="Свободные $: "+formatNum(free);
+      document.getElementById('pfTotal').textContent="Объем $: "+formatNum(total);
+      applyPillClass(document.getElementById('pfPnlRub'), pnlVal,"PNL $");
     }
-    applyPillClassRaw(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
+    applyPillClass(document.getElementById('pfPnlPct'), pnlPct,"PNL %");
 
-    document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
+    document.getElementById('updated').textContent=updated||new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
   }catch(e){
@@ -254,35 +219,24 @@ setInterval(loadData,60000);
 // Switch mode
 document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
 // Logout
-document.getElementById('logoutBtn').onclick=()=>{ 
-  localStorage.removeItem(STORAGE_KEY); 
-  localStorage.removeItem("gtbot_mode"); 
-  location.reload(); 
-};
-
+document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
 // Copy
-document.getElementById('copyBtn').onclick = () => {
-  function tableToText(id, title){
-    const rows = [...document.getElementById(id).rows];
-    if (!rows.length) return `${title}: нет данных\n`;
-    let text = `\n### ${title}\n`;
-    text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
+document.getElementById('copyBtn').onclick=()=>{
+  function tableToText(id,title){
+    const rows=[...document.getElementById(id).rows];
+    if(!rows.length) return `${title}: нет данных\n`;
+    let text=`\n### ${title}\n`;
+    text+=rows.map(r=>[...r.cells].map(c=>c.innerText).join(" | ")).join("\n");
     return text;
   }
-  let out = "📊 Данные GT-BOT\n";
-  out += tableToText("portfolio", "Портфель");
-  out += "\n";
-  out += tableToText("orders", "Открытые ордера");
-  navigator.clipboard.writeText(out).then(()=>alert("✅ Скопировано")).catch(()=>alert("⚠ Ошибка копирования"));
+  let out="📊 Данные GT-BOT\n";
+  out+=tableToText("portfolio","Портфель");
+  out+="\n";
+  out+=tableToText("orders","Открытые ордера");
+  navigator.clipboard.writeText(out).then(()=>{alert("✅ Скопировано в буфер");}).catch(()=>{alert("⚠ Не удалось скопировать");});
 };
-
 // Auto-start
-if (currentMode){ 
-  document.getElementById("startScreen").style.display="none"; 
-  document.getElementById("app").style.display="block"; 
-  updateModePill(); 
-  loadData(); 
-}
+if(currentMode){ document.getElementById("startScreen").style.display="none"; document.getElementById("app").style.display="block"; updateModePill(); loadData(); }
 </script>
 </body>
 </html>
