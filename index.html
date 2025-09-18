@@ -138,23 +138,11 @@ function updateModePill(){
 
 // ===== Helpers =====
 function clsPnL(v){
-  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
-  if (isNaN(num) || num === 0) return 'muted';
-  return num > 0 ? 'pos' : 'neg';
-}
-
-// Формат RUB (инвест)
-function fmtRub(val) {
-  const num = parseFloat(val);
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-// Формат PNL % для инвест — умножаем на 100 и округляем
-function fmtInvestPct(val) {
-  const num = parseFloat(val) * 100;
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
+  // Если значение содержит "-", красим красным, иначе зеленым
+  const s = String(v);
+  if (s === "" || s === "0" || s === "0,00" || s === "0.00" || s === "0%") return 'muted';
+  if (s.includes("-")) return 'neg';
+  return 'pos';
 }
 
 // ===== Render =====
@@ -165,36 +153,36 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
-  rows.forEach((row, i) => {
+  rows.forEach((row,i)=>{
     let filteredRow = row;
-    if (id === 'orders') filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]];
-    if (id === 'portfolio') filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
+    if (id==='orders'){ 
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
+    }
+    if (id==='portfolio'){ 
+      filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
+    }
 
-    const firstCell = String(filteredRow[0] || "").toLowerCase();
+    const firstCell = String(filteredRow[0]||"").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
 
     const tr = document.createElement("tr");
 
-    if (isSection) {
+    if(isSection){
       const td = document.createElement("td");
       td.colSpan = filteredRow.length;
       td.textContent = row[0];
       td.className = "sectionRow";
       tr.appendChild(td);
     } else {
-      filteredRow.forEach((cell, j) => {
-        const tag = i === 0 ? "th" : "td";
-        const td = document.createElement(tag);
-        let val = (cell === undefined || cell === null) ? "" : String(cell).trim();
-        if (id === 'orders' && i > 0 && j === 1) td.className = val === "BUY" ? "buy" : val === "SELL" ? "sell" : "";
-        if (id === 'portfolio' && i > 0 && (j >= filteredRow.length - 2)) td.className = clsPnL(val);
+      filteredRow.forEach((cell,j)=>{
+        const tag = i===0?"th":"td";
+        const td=document.createElement(tag);
+        let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
+        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+        // Красим PNL ₽ и PNL % по знаку
+        if (id==='portfolio' && i>0 && (j === 6 || j === 7)) td.className=clsPnL(val);
 
-        // ---- ФОРМАТИРОВАНИЕ ДЛЯ INVEST ----
-        if (currentMode === "invest" && id === 'portfolio' && i > 0) {
-          if (j === 6) val = fmtRub(val);         // PNL ₽
-          if (j === 7) val = fmtInvestPct(val);   // PNL %
-        }
-        // В крипто — не форматируем!
+        // ====== В режиме INVEST — значения из таблицы как есть! ======
         td.textContent = val;
         tr.appendChild(td);
       });
@@ -234,10 +222,10 @@ async function loadData(){
       pnlPct  = findValueByTitle(data.portfolio, "PNL %");
       updated = findValueByTitle(data.portfolio, "Время обновления");
 
-      document.getElementById('pfFree').textContent = "Свободные ₽: " + fmtRub(free);
-      document.getElementById('pfTotal').textContent = "Объем ₽: " + fmtRub(total);
-      document.getElementById('pfPnlRub').textContent = "PNL ₽: " + fmtRub(pnlVal);
-      document.getElementById('pfPnlPct').textContent = "PNL %: " + fmtInvestPct(pnlPct);
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + free;
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
+      document.getElementById('pfPnlRub').textContent = "PNL ₽: " + pnlVal;
+      document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
     } else if(currentMode === "kripto"){
       free    = findValueByTitle(data.portfolio, "Свободные $");
       total   = findValueByTitle(data.portfolio, "Общая стоимость портфеля");
