@@ -97,7 +97,6 @@ const STORAGE_KEY = "gtbot_auth";
 if (location.search.includes("logout=1")) {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem("gtbot_mode");
-  // чистим query, чтобы не зациклиться
   location.replace(location.origin + location.pathname);
 }
 
@@ -116,14 +115,14 @@ function ensureAuth() {
 
 // ====== API ======
 const API_URLS = {
-  kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
-  invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
+  kripto: "https://script.google.com/macros/s/ТВОЙ_URL_ДЛЯ_CRYPTO/exec",
+  invest: "https://script.google.com/macros/s/ТВОЙ_URL_ДЛЯ_INVEST/exec"
 };
 
 let currentMode = localStorage.getItem("gtbot_mode") || null;
 
 function chooseMode(mode){
-  if (!ensureAuth()) return;       // ← защита
+  if (!ensureAuth()) return;
   currentMode = mode;
   localStorage.setItem("gtbot_mode", mode);
   document.getElementById("startScreen").style.display="none";
@@ -157,14 +156,27 @@ function applyPillClassRaw(el, value, label){
 
 // Форматирование чисел для руб и процентов
 function fmtRub(val) {
-  // Разделяем тысячи, 2 знака, если NaN — вернём исходное
   const num = parseFloat(val);
   if (isNaN(num)) return val;
   return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 function fmtPct(val) {
-  // 2 знака после запятой, если NaN — вернём исходное
-  const num = parseFloat(val)*100; // PNL % приходит как 0.0252, надо превратить в 2.52
+  const num = parseFloat(val);
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// Форматирование крипто PNL % (например 2.52%)
+function fmtPctCrypto(val) {
+  // Ожидается, что значение уже в процентах (например, 2.52)
+  const num = parseFloat(val);
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// Форматирование крипто PNL $ (например 2000.00)
+function fmtUsd(val) {
+  const num = parseFloat(val);
   if (isNaN(num)) return val;
   return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
@@ -173,7 +185,6 @@ function fmtPct(val) {
 function findValueByTitle(portfolio, title) {
   for (let i = 0; i < portfolio.length; i++) {
     if (String(portfolio[i][9]).includes(title)) {
-      // значение всегда в следующей строке
       return portfolio[i + 1]?.[9] ?? "—";
     }
   }
@@ -217,10 +228,15 @@ function renderTable(id, rows){
         // Красим BUY/SELL
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
         // Красим PNL в портфеле
-        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
-        // Форматируем ПНЛ ₽ и ПНЛ %
-        if (id==='portfolio' && i>0 && j === 6) val = fmtRub(val);
-        if (id==='portfolio' && i>0 && j === 7) val = fmtPct(val);
+        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){
+          td.className=clsPnL(val);
+          // Форматируем PNL % и PNL $ — только для крипто
+          if (currentMode==="kripto" && j===6) val = fmtPctCrypto(val);
+          if (currentMode==="kripto" && j===7) val = fmtUsd(val);
+          // Для инвест — как раньше (через fmtRub/fmtPct)
+          if (currentMode==="invest" && j===6) val = fmtRub(val);
+          if (currentMode==="invest" && j===7) val = fmtPct(val);
+        }
         td.textContent=val;
         tr.appendChild(td);
       });
@@ -254,12 +270,21 @@ async function loadData(){
       document.getElementById('pfFree').textContent = "Свободные ₽: " + fmtRub(free);
       document.getElementById('pfTotal').textContent = "Объем ₽: " + fmtRub(total);
       applyPillClassRaw(document.getElementById('pfPnlRub'), fmtRub(pnlVal), "PNL ₽");
+      applyPillClassRaw(document.getElementById('pfPnlPct'), fmtPct(pnlPct), "PNL %");
     } else {
-      document.getElementById('pfFree').textContent = "Свободные $: " + free;
-      document.getElementById('pfTotal').textContent = "Объем $: " + total;
-      applyPillClassRaw(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
+      // Для крипто
+      free    = findValueByTitle(data.portfolio, "Свободные $");
+      total   = findValueByTitle(data.portfolio, "Общая стоимость портфеля");
+      pnlPct  = findValueByTitle(data.portfolio, "Общий PnL %");
+      pnlVal  = findValueByTitle(data.portfolio, "Общий PnL $");
+      updated = findValueByTitle(data.portfolio, "Время обновления");
+
+      document.getElementById('pfFree').textContent = "Свободные $: " + fmtUsd(free);
+      document.getElementById('pfTotal').textContent = "Объем $: " + fmtUsd(total);
+      applyPillClassRaw(document.getElementById('pfPnlRub'), fmtUsd(pnlVal), "PNL $");
+      applyPillClassRaw(document.getElementById('pfPnlPct'), fmtPctCrypto(pnlPct), "PNL %");
     }
-    applyPillClassRaw(document.getElementById('pfPnlPct'), fmtPct(pnlPct), "PNL %");
+
     document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
