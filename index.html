@@ -241,9 +241,7 @@ async function loadData(){
       document.getElementById('pfTotal').textContent = "Объем $: " + formatNum(total);
       applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
     }
-
-    applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
-
+    
     document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
