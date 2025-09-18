@@ -210,14 +210,15 @@ async function loadData(){
       if(currentMode === "invest"){
         for (let i=0; i<data.portfolio.length; i++){
           const row = data.portfolio[i];
-          const ticker = String(row[0] || "").toUpperCase();
-          if (ticker === "RUB") free = row[5];
-          const k = String(row[9] || "").toLowerCase();
-          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
-          if (k.includes("стоимость")) total = v;
-          if (k.includes("pnl ₽")) pnlVal = v;
-          if (k.includes("pnl %")) pnlPct = v;
+          const cell = String(row[0] || "").toLowerCase();
+          const value = row[1] || row[5] || row[7] || row[9];
+
+          if (cell.includes("свободные")) free = value;
+          if (cell.includes("стоимость")) total = value;
+          if (cell.includes("pnl ₽")) pnlVal = value;
+          if (cell.includes("pnl %")) pnlPct = value;
         }
+      }
       } else {
         // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
         free    = data.portfolio[2]?.[9]  ?? "—";
@@ -248,6 +249,12 @@ async function loadData(){
   }
 }
 
+function formatNum(val){
+  const num = parseFloat(val);
+  if(Number.isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+  
 // Auto-refresh
 setInterval(loadData,60000);
 
