@@ -1,1 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>GT · Dashboard</title>
+  <style>
+    :root{
+      --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
+      --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
+    }
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+      background:var(--bg); color:var(--text); padding-top: env(safe-area-inset-top);}
+    header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px; display:flex; flex-direction:column; gap:4px}
+    h1{font-size:14px; margin:0; color:var(--yellow);}
+    .pill{padding:2px 6px; border-radius:8px; font-size:10px; font-weight:600; text-align:center}
+    .pill.online{background:#193e2d; color:var(--green);}
+    .pill.offline{background:#3e1919; color:var(--red);}
+    .pill.pos{background:#193e2d; color:var(--green);}
+    .pill.neg{background:#3e1919; color:var(--red);}
+    .pill.muted{background:#333; color:var(--muted);}
+    .logout{background:#333; cursor:pointer; padding:6px 10px; margin:10px 5px; display:inline-block; border-radius:8px; font-size:12px;}
+    .header-top, .header-bottom{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+    .header-bottom{width:100%; justify-content:space-between}
+    .header-bottom .pill{flex:1; min-width:0}
+    main{padding:6px; display:grid; gap:8px}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
+    .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
+    .grid{overflow-x:hidden}
+    table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
+    th,td{padding:3px 2px;border:1px solid var(--border);text-align:center;white-space:normal;word-wrap:break-word;max-width:80px;}
+    th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
+    .buy{color:var(--green); font-weight:600}
+    .sell{color:var(--red); font-weight:600}
+    .pos{color:var(--green); font-weight:600}
+    .neg{color:var(--red); font-weight:600}
+    .muted{color:var(--muted)}
+    .sectionRow{text-align:center; font-weight:700; color:var(--yellow); background:#222; padding:4px;}
+    footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
+    #startScreen{display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; gap:20px}
+    .startBtn{background:var(--yellow); color:#000; font-weight:700; border:none; border-radius:8px; padding:15px 25px; font-size:16px; cursor:pointer}
+    .btnRow{text-align:center; margin:10px 0;}
+  </style>
+</head>
+<body>
 
+<div id="startScreen">
+  <h1>🚀 GT</h1>
+  <button class="startBtn" onclick="chooseMode('kripto')">GT-CRYPTO</button>
+  <button class="startBtn" onclick="chooseMode('invest')">GT-INVEST</button>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="header-top">
+      <h1 id="modePill">—</h1>
+      <span id="status" class="pill">—</span>
+      <span id="updated" class="pill">—</span>
+      <button id="switchBtn" class="pill">🔄 Переключить</button>
+    </div>
+    <div class="header-bottom">
+      <span id="pfFree" class="pill">Свободные: —</span>
+      <span id="pfPnlPct" class="pill">PNL %: —</span>
+      <span id="pfPnlRub" class="pill">PNL ₽/$: —</span>
+      <span id="pfTotal" class="pill">Объем: —</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>📊 Портфель</h2>
+      <div class="grid"><table id="portfolio"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>📑 Открытые ордера (<b id="ooCount">—</b>)</h2>
+      <div class="grid"><table id="orders"></table></div>
+    </section>
+  </main>
+
+  <footer>
+    📱 Добавь на iPhone: Поделиться → «На экран Домой»
+  </footer>
+
+  <div class="btnRow">
+    <button id="logoutBtn" class="logout">🚪 Выйти</button>
+    <button id="copyBtn" class="logout">📋 Копировать</button>
+  </div>
+</div>
+
+<script>
+// ====== Пароль ======
+const PASSWORD = "Gt4815162342!";
+const STORAGE_KEY = "gtbot_auth";
+if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+  const input = prompt("Введите пароль для доступа:");
+  if (input === PASSWORD) {
+    localStorage.setItem(STORAGE_KEY, "ok");
+  } else {
+    document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px'>⛔ Доступ запрещён</h2>";
+    throw new Error("Access denied");
+  }
+}
+
+// ====== API ======
+const API_URLS = {
+  kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
+  invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
+};
+
+let currentMode = localStorage.getItem("gtbot_mode") || null;
+
+function chooseMode(mode){
+  currentMode = mode;
+  localStorage.setItem("gtbot_mode", mode);
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("app").style.display="block";
+  loadData();
+  updateModePill();
+}
+
+function updateModePill(){
+  document.getElementById("modePill").textContent =
+    currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
+}
+
+// ===== Helpers =====
+function clsPnL(v){
+  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
+  if (isNaN(num) || num === 0) return 'muted';
+  return num > 0 ? 'pos' : 'neg';
+}
+function applyPillClassRaw(el, value, label){
+  const num = parseFloat(value);
+  if(isNaN(num) || num===0){
+    el.className = "pill muted";
+  } else if(num > 0){
+    el.className = "pill pos";
+  } else {
+    el.className = "pill neg";
+  }
+  el.textContent = label + ": " + value;
+}
+
+// ===== Render =====
+function renderTable(id, rows){
+  const table = document.getElementById(id);
+  table.innerHTML = "";
+  if (!rows || !rows.length){
+    table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
+    return;
+  }
+
+  rows.forEach((row,i)=>{
+    let filteredRow = row;
+    if (id==='orders'){ 
+      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
+    }
+    if (id==='portfolio'){ 
+      if(currentMode==="kripto"){
+        // теперь с PNL $
+        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
+      } else {
+        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
+      }
+    }
+
+    const firstCell = String(filteredRow[0]||"").toLowerCase();
+    const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
+
+    const tr = document.createElement("tr");
+
+    if(isSection){
+      const td = document.createElement("td");
+      td.colSpan = filteredRow.length;
+      td.textContent = row[0];
+      td.className = "sectionRow";
+      tr.appendChild(td);
+    } else {
+      filteredRow.forEach((cell,j)=>{
+        const tag = i===0?"th":"td";
+        const td=document.createElement(tag);
+        let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
+        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
+        td.textContent=val;
+        tr.appendChild(td);
+      });
+    }
+    table.appendChild(tr);
+  });
+}
+
+// ===== Load =====
+async function loadData(){
+  if (!currentMode) return;
+  try{
+    document.getElementById('status').textContent="Обновляю…";
+    document.getElementById('status').className="pill";
+    const res = await fetch(API_URLS[currentMode]);
+    const data = await res.json();
+
+    renderTable("portfolio", data.portfolio);
+    renderTable("orders", data.openOrders);
+    document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
+
+    let free="—", total="—", pnlVal="—", pnlPct="—", updated="";
+
+    try{
+      if(currentMode === "invest"){
+        for (let i=0; i<data.portfolio.length; i++){
+          const row = data.portfolio[i];
+          const ticker = String(row[0] || "").toUpperCase();
+          if (ticker === "RUB") free = row[5];
+          const k = String(row[9] || "").toLowerCase();
+          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
+          if (k.includes("стоимость")) total = v;
+          if (k.includes("pnl ₽")) pnlVal = v;
+          if (k.includes("pnl %")) pnlPct = v;
+        }
+      } else {
+        // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
+        free    = data.portfolio[2]?.[9]  ?? "—";
+        total   = data.portfolio[4]?.[9]  ?? "—";
+        pnlVal  = data.portfolio[6]?.[9]  ?? "—";
+        pnlPct  = data.portfolio[8]?.[9]  ?? "—";
+        updated = data.portfolio[10]?.[9] ?? "";
+      }
+    }catch(_){}
+
+    if(currentMode === "invest"){
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + free;
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
+      applyPillClassRaw(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
+    } else {
+      document.getElementById('pfFree').textContent = "Свободные $: " + free;
+      document.getElementById('pfTotal').textContent = "Объем $: " + total;
+      applyPillClassRaw(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
+    }
+    applyPillClassRaw(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
+
+    document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
+    document.getElementById('status').textContent="Онлайн";
+    document.getElementById('status').className="pill online";
+  }catch(e){
+    document.getElementById('status').textContent="Оффлайн";
+    document.getElementById('status').className="pill offline";
+  }
+}
+
+// Auto-refresh
+setInterval(loadData,60000);
+
+// Switch mode
+document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
+// Logout
+document.getElementById('logoutBtn').onclick=()=>{ 
+  localStorage.removeItem(STORAGE_KEY); 
+  localStorage.removeItem("gtbot_mode"); 
+  location.reload(); 
+};
+
+// Copy
+document.getElementById('copyBtn').onclick = () => {
+  function tableToText(id, title){
+    const rows = [...document.getElementById(id).rows];
+    if (!rows.length) return ${title}: нет данных\n;
+    let text = \n### ${title}\n;
+    text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
+    return text;
+  }
+  let out = "📊 Данные GT-BOT\n";
+  out += tableToText("portfolio", "Портфель");
+  out += "\n";
+  out += tableToText("orders", "Открытые ордера");
+  navigator.clipboard.writeText(out).then(()=>alert("✅ Скопировано")).catch(()=>alert("⚠ Ошибка копирования"));
+};
+
+// Auto-start
+if (currentMode){ 
+  document.getElementById("startScreen").style.display="none"; 
+  document.getElementById("app").style.display="block"; 
+  updateModePill(); 
+  loadData(); 
+}
+</script>
+</body>
+</html>
