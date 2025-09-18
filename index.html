@@ -104,8 +104,8 @@ if (localStorage.getItem(STORAGE_KEY) !== "ok") {
 
 // ====== API ======
 const API_URLS = {
-  kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
-  invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
+  kripto: "https://script.google.com/macros/s/ТВОЙ_URL_ДЛЯ_CRYPTO/exec",
+  invest: "https://script.google.com/macros/s/ТВОЙ_URL_ДЛЯ_INVEST/exec"
 };
 
 let currentMode = localStorage.getItem("gtbot_mode") || null;
@@ -158,7 +158,6 @@ function renderTable(id, rows){
     }
     if (id==='portfolio'){ 
       if(currentMode==="kripto"){
-        // теперь с PNL $
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       } else {
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
@@ -212,19 +211,17 @@ async function loadData(){
           const row = data.portfolio[i];
           const key = String(row[0] || "").toLowerCase();
           const val = row[1];
-      
           if (key.includes("свободные")) free = val;
           if (key.includes("стоимость")) total = val;
           if (key.includes("pnl ₽")) pnlVal = val;
-          if (key.includes("pnl %")) pnlPct = val;
-        }
+          if (key.includes("pnl %")) pnlPct = val;
+        }
       } else {
-        // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
-        free    = data.portfolio[2]?.[9]  ?? "—";
-        total   = data.portfolio[4]?.[9]  ?? "—";
-        pnlVal  = data.portfolio[6]?.[9]  ?? "—";
-        pnlPct  = data.portfolio[8]?.[9]  ?? "—";
-        updated = data.portfolio[10]?.[9] ?? "";
+        free    = data.portfolio[2]?.[9]  ?? "—";  // J3
+        total   = data.portfolio[4]?.[9]  ?? "—";  // J5
+        pnlVal  = data.portfolio[6]?.[9]  ?? "—";  // J7
+        pnlPct  = data.portfolio[8]?.[9]  ?? "—";  // J9
+        updated = data.portfolio[10]?.[9] ?? "";   // J11
       }
     }catch(_){}
 
@@ -253,6 +250,7 @@ setInterval(loadData,60000);
 
 // Switch mode
 document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
+
 // Logout
 document.getElementById('logoutBtn').onclick=()=>{ 
   localStorage.removeItem(STORAGE_KEY); 
