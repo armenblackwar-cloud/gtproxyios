@@ -89,17 +89,29 @@
 </div>
 
 <script>
-// ====== Пароль ======
+// ====== Пароль (замени старый блок на этот) ======
 const PASSWORD = "Gt4815162342!";
 const STORAGE_KEY = "gtbot_auth";
-if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+
+// принудительный выход по URL-параметру ?logout=1
+if (location.search.includes("logout=1")) {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem("gtbot_mode");
+  // чистим query, чтобы не зациклиться
+  location.replace(location.origin + location.pathname);
+}
+
+function isAuthed(){ return localStorage.getItem(STORAGE_KEY) === "ok"; }
+
+function ensureAuth() {
+  if (isAuthed()) return true;
   const input = prompt("Введите пароль для доступа:");
   if (input === PASSWORD) {
     localStorage.setItem(STORAGE_KEY, "ok");
-  } else {
-    document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:50px'>⛔ Доступ запрещён</h2>";
-    throw new Error("Access denied");
+    return true;
   }
+  alert("Неверный пароль");
+  return false;
 }
 
 // ====== API ======
@@ -111,12 +123,13 @@ const API_URLS = {
 let currentMode = localStorage.getItem("gtbot_mode") || null;
 
 function chooseMode(mode){
+  if (!ensureAuth()) return;       // ← защита
   currentMode = mode;
   localStorage.setItem("gtbot_mode", mode);
   document.getElementById("startScreen").style.display="none";
   document.getElementById("app").style.display="block";
-  loadData();
   updateModePill();
+  loadData();
 }
 
 function updateModePill(){
