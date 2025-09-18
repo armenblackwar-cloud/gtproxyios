@@ -191,26 +191,36 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-
         // Красим BUY/SELL
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
         // Красим PNL в портфеле
         if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)) td.className=clsPnL(val);
 
-        // ======= ФОРМАТИРОВАНИЕ =======
-        if (currentMode === "invest") {
-          // Инвест: форматируем проценты и рубли
-          if (id==='portfolio' && i>0 && j===6) val = fmtInvestPct(val); // PNL %
-          if (id==='portfolio' && i>0 && j===7) val = fmtRub(val);       // PNL ₽
+        // ======= Форматируем только для INVEST =======
+        if (currentMode === "invest" && id==='portfolio' && i>0) {
+          if (j === 6) val = fmtInvestPct(val); // PNL %
+          if (j === 7) val = fmtRub(val);       // PNL ₽ ← только рубли!
         }
-        // Крипто — ничего не форматируем!
-
         td.textContent = val;
         tr.appendChild(td);
       });
     }
     table.appendChild(tr);
   });
+}
+
+// Формат RUB (инвест)
+function fmtRub(val) {
+  const num = parseFloat(val);
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// Формат PNL % для инвест — умножаем на 100 и округляем
+function fmtInvestPct(val) {
+  const num = parseFloat(val) * 100;
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
 }
 
 // ===== Load =====
