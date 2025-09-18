@@ -124,6 +124,12 @@ function updateModePill(){
     currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
 }
 
+function formatNum(val){
+  const num = parseFloat(val);
+  if(Number.isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
 // ===== Helpers =====
 function clsPnL(v){
   const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
