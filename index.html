@@ -248,12 +248,6 @@ async function loadData(){
     document.getElementById('status').className="pill offline";
   }
 }
-
-function formatNum(val){
-  const num = parseFloat(val);
-  if(Number.isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-}
   
 // Auto-refresh
 setInterval(loadData,60000);
