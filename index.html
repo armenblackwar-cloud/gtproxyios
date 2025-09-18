@@ -82,6 +82,7 @@
   </footer>
 
   <button id="logoutBtn" class="logout">🚪 Выйти</button>
+  <button id="copyBtn" class="logout">📋 Копировать</button>
 </div>
 
 <script>
@@ -264,6 +265,29 @@ document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kri
 // Logout
 document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
 
+document.getElementById('copyBtn').onclick = () => {
+  function tableToText(id, title){
+    const rows = [...document.getElementById(id).rows];
+    if (!rows.length) return ${title}: нет данных\n;
+
+    let text = \n### ${title}\n;
+    text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
+    return text;
+  }
+
+  let out = "📊 Данные GT-BOT\n";
+  out += tableToText("portfolio", "Портфель");
+  out += "\n";
+  out += tableToText("orders", "Открытые ордера");
+
+  navigator.clipboard.writeText(out).then(()=>{
+    alert("✅ Скопировано в буфер");
+  }).catch(()=>{
+    alert("⚠ Не удалось скопировать");
+  });
+};
+
+  
 // Auto-start
 if (currentMode){ document.getElementById("startScreen").style.display="none"; document.getElementById("app").style.display="block"; updateModePill(); loadData(); }
 </script>
