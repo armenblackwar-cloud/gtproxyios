@@ -209,7 +209,6 @@ async function loadData(){
 
     try{
       if(currentMode === "invest"){
-        // тут GAS уже отдаёт строки с форматированием (7 746,21 и т.п.)
         for (let i=0; i<data.portfolio.length; i++){
           const row = data.portfolio[i];
           const ticker = String(row[0] || "").toUpperCase();
@@ -218,22 +217,24 @@ async function loadData(){
           const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
           if (k.includes("стоимость")) total = v;
           if (k.includes("pnl ₽")) pnlVal = v;
-          if (k.includes("pnl %")) pnlPct = v; // тут строка, не число
+          if (k.includes("pnl %")) {
+            const num = parseFloat(v);
+            pnlPct = isNaN(num) ? v : num * 100;
+          }
         }
       } else {
-        // Для CRYPTO берём конкретные ячейки (J3, J5, J7, J9, J11)
-        free    = data.portfolio[2][9];  // J3
-        total   = data.portfolio[4][9];  // J5
-        pnlVal  = data.portfolio[6][9];  // J7
-        pnlPct  = data.portfolio[8][9];  // J9
-        updated = data.portfolio[10][9]; // J11
+        // Для CRYPTO напрямую берём из I2, I4, I6, I8
+        free    = data.portfolio[2][9];  // I2 
+        total   = data.portfolio[4][9];  // I2
+        pnlVal  = data.portfolio[6][9];  // I4
+        pnlPct  = data.portfolio[8][9];  // I6
+        updated = data.portfolio[10][9];  // I8
       }
     }catch(_){}
 
-    // ===== APPLY =====
     if(currentMode === "invest"){
-      document.getElementById('pfFree').textContent = "Свободные ₽: " + (free || "—");
-      document.getElementById('pfTotal').textContent = "Объем ₽: " + (total || "—");
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + formatNum(free);
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + formatNum(total);
       applyPillClass(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
     } else {
       document.getElementById('pfFree').textContent = "Свободные $: " + formatNum(free);
@@ -242,14 +243,14 @@ async function loadData(){
     }
 
     applyPillClass(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
+
     document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
-
   }catch(e){
     document.getElementById('status').textContent="Оффлайн";
-    document.getElementById('status').className="pill offline";
-  }
+    document.getElementById('status').className="pill offline";
+  }
 }
 
 // Auto-refresh
