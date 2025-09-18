@@ -210,14 +210,15 @@ async function loadData(){
       if(currentMode === "invest"){
         for (let i=0; i<data.portfolio.length; i++){
           const row = data.portfolio[i];
-          const ticker = String(row[0] || "").toUpperCase();
-          if (ticker === "RUB") free = row[5];
-          const k = String(row[9] || "").toLowerCase();
-          const v = data.portfolio[i+1] ? data.portfolio[i+1][9] : "";
-          if (k.includes("стоимость")) total = v;
-          if (k.includes("pnl ₽")) pnlVal = v;
-          if (k.includes("pnl %")) pnlPct = v;
-        }
+          const key = String(row[0] || "").toLowerCase();
+          const val = row[1];
+      
+          if (key.includes("свободные")) free = val;
+          if (key.includes("стоимость")) total = val;
+          if (key.includes("pnl ₽")) pnlVal = val;
+          if (key.includes("pnl %")) pnlPct = val;
+        }
+      }
       } else {
         // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
         free    = data.portfolio[2]?.[9]  ?? "—";
