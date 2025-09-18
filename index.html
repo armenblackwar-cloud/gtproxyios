@@ -144,18 +144,40 @@ function clsPnL(v){
   return 'pos';
 }
 
-// Формат RUB (инвест)
+// Формат RUB (инвест) и все суммы с пробелом-разделителем
 function fmtRub(val) {
   const num = parseFloat(val);
   if (isNaN(num)) return val;
   return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-// Формат PNL % для инвест — умножаем на 100 и округляем
+// Формат для любых чисел (цена, объём, количество)
+function fmtNum(val) {
+  const num = parseFloat(val);
+  if (isNaN(num)) return val;
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// Формат PNL % — умножаем на 100 и добавляем знак %
 function fmtInvestPct(val) {
   const num = parseFloat(val) * 100;
   if (isNaN(num)) return val;
   return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
+}
+
+// Формат времени (строка ISO → человекочитаемое по Москве)
+function fmtRuDate(str) {
+  // str типа "2025-09-18T22:26:29.451Z"
+  try {
+    const dt = new Date(str);
+    if (isNaN(dt.getTime())) return str;
+    // Москва: UTC+3
+    dt.setHours(dt.getHours() + 3);
+    return dt.toLocaleString('ru-RU', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).replace(',', '');
+  } catch(e) { return str; }
 }
 
 // ===== Render =====
@@ -197,6 +219,8 @@ function renderTable(id, rows){
 
         // ====== В режиме INVEST — преобразуем значения! ======
         if (currentMode === "invest" && id === 'portfolio' && i > 0) {
+          // "Текущая цена", "Средняя цена", "Количество", "Общий объём ₽" — j=2..5
+          if (j >= 2 && j <= 5) val = fmtNum(val);
           if (j === 6) val = fmtRub(val);         // PNL ₽
           if (j === 7) val = fmtInvestPct(val);   // PNL %
         }
@@ -243,6 +267,7 @@ async function loadData(){
       document.getElementById('pfTotal').textContent = "Объем ₽: " + fmtRub(total);
       document.getElementById('pfPnlRub').textContent = "PNL ₽: " + fmtRub(pnlVal);
       document.getElementById('pfPnlPct').textContent = "PNL %: " + fmtInvestPct(pnlPct);
+      document.getElementById('updated').textContent = fmtRuDate(updated);
     } else if(currentMode === "kripto"){
       free    = findValueByTitle(data.portfolio, "Свободные $");
       total   = findValueByTitle(data.portfolio, "Общая стоимость портфеля");
@@ -250,13 +275,12 @@ async function loadData(){
       pnlVal  = findValueByTitle(data.portfolio, "Общий PnL $");
       updated = findValueByTitle(data.portfolio, "Время обновления");
 
-      document.getElementById('pfFree').textContent = "Свободные $: " + free;
-      document.getElementById('pfTotal').textContent = "Объем $: " + total;
-      document.getElementById('pfPnlRub').textContent = "PNL $: " + pnlVal;
+      document.getElementById('pfFree').textContent = "Свободные $: " + fmtNum(free);
+      document.getElementById('pfTotal').textContent = "Объем $: " + fmtNum(total);
+      document.getElementById('pfPnlRub').textContent = "PNL $: " + fmtNum(pnlVal);
       document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
+      document.getElementById('updated').textContent = fmtRuDate(updated);
     }
-
-    document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
     document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
   }catch(e){
