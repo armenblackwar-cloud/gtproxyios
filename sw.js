@@ -1,18 +1,9 @@
-self.addEventListener('install', function(e) {
-  self.skipWaiting();
-});
-self.addEventListener('activate', function(e) {
-  self.clients.claim();
-});
-self.addEventListener('fetch', function(e) {
-  e.respondWith(
-    caches.open('gt-cache').then(function(cache) {
-      return cache.match(e.request).then(function(response) {
-        return response || fetch(e.request).then(function(resp) {
-          cache.put(e.request, resp.clone());
-          return resp;
-        });
-      });
-    })
-  );
-});
+const CACHE = 'gtbot-cache-v1';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './sw.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
+];
