@@ -134,7 +134,9 @@ function toNum(v){
 
 function formatNum(v){
   const n = toNum(v);
-  if (Number.isNaN(n)) return v;  // отдаём как есть, например "—"
+  if (Number.isNaN(n)) return v;
+
+  // округляем до 2-х знаков, но сохраняем реальное значение
   return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
@@ -165,7 +167,7 @@ function renderTable(id, rows){
     }
     if (id==='portfolio'){ 
       if(currentMode==="kripto"){
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6]];
+        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       } else {
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       }
