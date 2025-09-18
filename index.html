@@ -82,6 +82,7 @@
   </footer>
 
   <button id="logoutBtn" class="logout">🚪 Выйти</button>
+  <button id="copyBtn" class="logout">📋 Копировать</button>
 </div>
 
 <script>
@@ -224,11 +225,11 @@ async function loadData(){
         }
       } else {
         // Для CRYPTO напрямую берём из I2, I4, I6, I8
-        free    = data.portfolio[3][9];  // J3
-        total   = data.portfolio[5][9];  // J5
-        pnlVal  = data.portfolio[7][9];  // J7
-        pnlPct  = data.portfolio[9][9];  // J9
-        updated = data.portfolio[11][9]; // J11
+        free    = data.portfolio[2][9];  // J3
+        total   = data.portfolio[4][9];  // J5
+        pnlVal  = data.portfolio[6][9];  // J7
+        pnlPct  = data.portfolio[8][9];  // J9
+        updated = data.portfolio[10][9]; // J11
       }
     }catch(_){}
 
