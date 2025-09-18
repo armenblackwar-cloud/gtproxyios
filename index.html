@@ -121,26 +121,32 @@ function updateModePill(){
 }
 
 // ===== Helpers =====
-function clsPnL(v){
-  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
-  if (isNaN(num) || num === 0) return 'muted';
-  return num > 0 ? 'pos' : 'neg';
+function toNum(v){
+  if (v === null || v === undefined) return NaN;
+  if (typeof v === 'number') return v;
+  const s = String(v)
+    .replace(/\u00A0/g, '')   // неразрывные пробелы
+    .replace(/\s+/g, '')      // обычные пробелы
+    .replace(',', '.');       // запятая -> точка
+  const n = Number(s);
+  return Number.isFinite(n) ? n : NaN;
 }
-function formatNum(val){
-  const num = parseFloat(val);
-  if(Number.isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+function formatNum(v){
+  const n = toNum(v);
+  if (Number.isNaN(n)) return v;  // отдаём как есть, например "—"
+  return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
 function applyPillClass(el, value, label){
-  const num = parseFloat(value);
-  if(isNaN(num) || num===0){
+  const n = toNum(value);
+  if (Number.isNaN(n)){
     el.className = "pill muted";
-  } else if(num > 0){
-    el.className = "pill pos";
-  } else {
-    el.className = "pill neg";
+    el.textContent = ${label}: —;
+    return;
   }
-  el.textContent = label + ": " + formatNum(value);
+  el.className = n > 0 ? "pill pos" : n < 0 ? "pill neg" : "pill muted";
+  el.textContent = ${label}: ${formatNum(n)};
 }
 
 // ===== Render =====
@@ -181,7 +187,10 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-        if(tag==="td" && val!==""){ if(!isNaN(val)) val = formatNum(val); }
+        if (tag === "td" && val !== ""){
+         const n = toNum(val);
+         if (!Number.isNaN(n)) val = formatNum(n);
+        }
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
         if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
         td.textContent=val;
