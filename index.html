@@ -240,6 +240,10 @@ function renderTable(id, rows){
           if (j === 6) val = fmtRub(val);         // PNL ₽
           if (j === 7) val = fmtInvestPct(val);   // PNL %
         }
+        // ====== В режиме CRYPTO — добавляем % к PnL % ======
+        if (currentMode === "kripto" && id === 'portfolio' && i > 0 && j === 6) {
+          if (val !== "") val = val + "%";
+        }
         td.textContent = val;
         tr.appendChild(td);
       });
