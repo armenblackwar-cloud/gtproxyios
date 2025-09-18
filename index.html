@@ -165,45 +165,36 @@ function renderTable(id, rows){
     table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
-
-  rows.forEach((row,i)=>{
+  rows.forEach((row, i) => {
     let filteredRow = row;
-    if (id==='orders'){ 
-      filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
-    }
-    if (id==='portfolio'){ 
-      filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
-    }
+    if (id === 'orders') filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]];
+    if (id === 'portfolio') filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
 
-    const firstCell = String(filteredRow[0]||"").toLowerCase();
+    const firstCell = String(filteredRow[0] || "").toLowerCase();
     const isSection = firstCell.includes("акции") || firstCell.includes("фонды") || firstCell.includes("валют") || firstCell.includes("металл");
 
     const tr = document.createElement("tr");
 
-    if(isSection){
+    if (isSection) {
       const td = document.createElement("td");
       td.colSpan = filteredRow.length;
       td.textContent = row[0];
       td.className = "sectionRow";
       tr.appendChild(td);
     } else {
-      filteredRow.forEach((cell,j)=>{
-        const tag = i===0?"th":"td";
-        const td=document.createElement(tag);
-        let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
+      filteredRow.forEach((cell, j) => {
+        const tag = i === 0 ? "th" : "td";
+        const td = document.createElement(tag);
+        let val = (cell === undefined || cell === null) ? "" : String(cell).trim();
+        if (id === 'orders' && i > 0 && j === 1) td.className = val === "BUY" ? "buy" : val === "SELL" ? "sell" : "";
+        if (id === 'portfolio' && i > 0 && (j >= filteredRow.length - 2)) td.className = clsPnL(val);
 
-        // Красим BUY/SELL
-        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
-        // Красим PNL в портфеле
-        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)) td.className=clsPnL(val);
-
-        // ======= Форматируем только для INVEST =======
-        if (currentMode === "invest" && id==='portfolio' && i>0) {
-          if (j === 6) val = fmtInvestPct(val); // PNL %
-          if (j === 7) val = fmtRub(val);       // PNL ₽ ← только рубли!
+        // ---- ФОРМАТИРОВАНИЕ ДЛЯ INVEST ----
+        if (currentMode === "invest" && id === 'portfolio' && i > 0) {
+          if (j === 6) val = fmtRub(val);         // PNL ₽
+          if (j === 7) val = fmtInvestPct(val);   // PNL %
         }
-        // Крипто — ничего не форматируем!
-
+        // В крипто — не форматируем!
         td.textContent = val;
         tr.appendChild(td);
       });
