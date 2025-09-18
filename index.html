@@ -20,18 +20,18 @@
     html,body{height:100%;}
     body{margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
       background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:env(safe-area-inset-bottom);}
-    header{position:sticky; top:0; background:#1a1f28; padding:8px 10px 2px 10px; font-size:12px; display:flex; flex-direction:column; gap:4px; z-index:2;}
-    h1{font-size:17px; margin:0; color:var(--yellow);}
-    .pill{padding:4px 10px; border-radius:18px; font-size:13px; font-weight:600; text-align:center; display:inline-block; min-width:80px; margin-bottom:2px;}
+    header{position:sticky; top:0; background:#1a1f28; padding:8px 10px 2px 10px; font-size:13px; display:flex; flex-direction:column; gap:2px; z-index:2;}
+    .hdr-row{display:flex;gap:10px;margin-bottom:2px;align-items:center;}
+    .hdr-row:last-child{margin-bottom:0;}
+    h1{font-size:18px; margin:0 0 3px 0; color:var(--yellow); font-weight:700;}
+    .pill{padding:4px 14px; border-radius:18px; font-size:13px; font-weight:600; text-align:center; display:inline-block; min-width:80px; margin-bottom:2px;}
     .pill.online{background:#193e2d; color:var(--green);}
     .pill.offline{background:#3e1919; color:var(--red);}
     .pill.pos{background:#193e2d; color:var(--green);}
     .pill.neg{background:#3e1919; color:var(--red);}
     .pill.muted{background:#333; color:var(--muted);}
-    .logout{background:#333; cursor:pointer; padding:8px 14px; margin:8px 4px; display:inline-block; border-radius:10px; font-size:14px;}
-    .header-top{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:space-between;}
-    .header-pills-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:2px;}
-    .header-pills-row:last-child{margin-bottom:0;}
+    .pill.switch{background:#222; color:var(--yellow); cursor:pointer; border:1px solid var(--yellow);}
+    .logout{background:#333; cursor:pointer; padding:8px 14px; margin:8px 4px; display:inline-block; border-radius:10px; font-size:14px; border:none;}
     main{padding:8px 2px; display:grid; gap:9px}
     .card{background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden}
     .card h2{margin:0; padding:9px 8px; font-size:15px; border-bottom:1px solid var(--border); color:var(--yellow); display:flex; align-items:center; gap:8px;}
@@ -45,14 +45,12 @@
     .neg{color:var(--red); font-weight:600}
     .muted{color:var(--muted)}
     .sectionRow{text-align:center; font-weight:700; color:var(--yellow); background:#222; padding:4px;}
-    footer{padding:10px; font-size:11px; color:var(--muted); text-align:center}
+    footer{padding:10px; font-size:11px; color:var(--muted); text-align:center;}
     #startScreen{display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh; gap:24px; background:var(--bg);}
     .startBtn{background:var(--yellow); color:#000; font-weight:700; border:none; border-radius:12px; padding:17px 27px; font-size:18px; cursor:pointer; box-shadow:0 2px 8px #0001;}
     .btnRow{text-align:center; margin:12px 0;}
-    .logo-icon{width:19px; height:19px; vertical-align:middle; margin-right:6px;}
     @media (max-width:700px){
-      .header-top{flex-direction:column;align-items:flex-start;}
-      .header-pills-row{gap:6px;}
+      .hdr-row{flex-wrap:wrap;gap:6px;}
       .card h2{font-size:16px;}
       th,td{font-size:11px;}
       main{padding:6px 2px;}
@@ -62,30 +60,31 @@
       .card h2{font-size:14px;padding:7px;}
       th,td{font-size:9px;padding:3px 1px;}
       .startBtn{font-size:15px;padding:11px 12px;}
+      .hdr-row{gap:4px;}
     }
   </style>
 </head>
 <body>
 
 <div id="startScreen">
-  <h1><img src="icons/icon-192.png" alt="GT" class="logo-icon" /> GT</h1>
+  <h1>GT-CRYPTO / GT-INVEST</h1>
   <button class="startBtn" onclick="chooseMode('kripto')">GT-CRYPTO</button>
   <button class="startBtn" onclick="chooseMode('invest')">GT-INVEST</button>
 </div>
 
 <div id="app" style="display:none">
   <header>
-    <div class="header-top">
-      <h1 id="modePill"><img src="icons/icon-192.png" alt="GT" class="logo-icon" /> —</h1>
+    <h1 id="modePill">—</h1>
+    <div class="hdr-row">
       <span id="status" class="pill">—</span>
       <span id="updated" class="pill muted">—</span>
-      <button id="switchBtn" class="pill">🔄 Переключить</button>
+      <button id="switchBtn" class="pill switch">Переключить</button>
     </div>
-    <div class="header-pills-row">
+    <div class="hdr-row">
       <span id="pfFree" class="pill muted">Свободные: —</span>
       <span id="pfTotal" class="pill muted">Объем: —</span>
     </div>
-    <div class="header-pills-row">
+    <div class="hdr-row">
       <span id="pfPnlPct" class="pill muted">PNL %: —</span>
       <span id="pfPnlRub" class="pill muted">PNL ₽/$: —</span>
     </div>
@@ -103,8 +102,7 @@
   </main>
 
   <footer>
-    📱 На iPhone: Поделиться → «На экран Домой»<br>
-    <span style="font-size:90%">Это приложение работает offline (PWA)</span>
+    GT Dashboard &copy; 2025
   </footer>
 
   <div class="btnRow">
@@ -152,9 +150,8 @@ function chooseMode(mode){
 }
 
 function updateModePill(){
-  document.getElementById("modePill").innerHTML =
-    `<img src="icons/icon-192.png" alt="GT" class="logo-icon" />` +
-    (currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST");
+  document.getElementById("modePill").textContent =
+    currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
 }
 
 // ===== Helpers =====
