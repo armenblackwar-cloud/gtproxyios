@@ -115,8 +115,8 @@ function ensureAuth() {
 
 // ====== API ======
 const API_URLS = {
-  kripto: "https://script.google.com/macros/s/AKfycbxfMjbnI3FJXB5A29d0okRRelF4-I-4tEBddCWAbWUPJhSJRAEvpbC8DFOsv4Bxbs_m9A/exec",
-  invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
+  kripto: "https://script.google.com/macros/s/ТВОЙ_URL_ДЛЯ_CRYPTO/exec",
+  invest: "https://script.google.com/macros/s/ТВОЙ_URL_ДЛЯ_INVEST/exec"
 };
 
 let currentMode = localStorage.getItem("gtbot_mode") || null;
@@ -141,54 +141,6 @@ function clsPnL(v){
   const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
   if (isNaN(num) || num === 0) return 'muted';
   return num > 0 ? 'pos' : 'neg';
-}
-function applyPillClassRaw(el, value, label){
-  const num = parseFloat(String(value).replace(',', '.').replace(/\s+/g,''));
-  if(isNaN(num) || num===0){
-    el.className = "pill muted";
-  } else if(num > 0){
-    el.className = "pill pos";
-  } else {
-    el.className = "pill neg";
-  }
-  el.textContent = label + ": " + value;
-}
-
-// Форматирование чисел для руб и процентов
-function fmtRub(val) {
-  const num = parseFloat(val);
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-function fmtPct(val) {
-  const num = parseFloat(val);
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-// Форматирование крипто PNL % (например 2.52%)
-function fmtPctCrypto(val) {
-  // Ожидается, что значение уже в процентах (например, 2.52)
-  const num = parseFloat(val);
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-// Форматирование крипто PNL $ (например 2000.00)
-function fmtUsd(val) {
-  const num = parseFloat(val);
-  if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-// Универсальный поиск значения справа по названию в J-колонке
-function findValueByTitle(portfolio, title) {
-  for (let i = 0; i < portfolio.length; i++) {
-    if (String(portfolio[i][9]).includes(title)) {
-      return portfolio[i + 1]?.[9] ?? "—";
-    }
-  }
-  return "—";
 }
 
 // ===== Render =====
@@ -225,19 +177,9 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-        // Красим BUY/SELL
         if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
-        // Красим PNL в портфеле
-        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){
-          td.className=clsPnL(val);
-          // Форматируем PNL % и PNL $ — только для крипто
-          if (currentMode==="kripto" && j===6) val = fmtPctCrypto(val);
-          if (currentMode==="kripto" && j===7) val = fmtUsd(val);
-          // Для инвест — как раньше (через fmtRub/fmtPct)
-          if (currentMode==="invest" && j===6) val = fmtRub(val);
-          if (currentMode==="invest" && j===7) val = fmtPct(val);
-        }
-        td.textContent=val;
+        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
+        td.textContent=val; // просто выводим как есть!
         tr.appendChild(td);
       });
     }
@@ -246,6 +188,15 @@ function renderTable(id, rows){
 }
 
 // ===== Load =====
+function findValueByTitle(portfolio, title) {
+  for (let i = 0; i < portfolio.length; i++) {
+    if (String(portfolio[i][9]).includes(title)) {
+      return portfolio[i + 1]?.[9] ?? "—";
+    }
+  }
+  return "—";
+}
+
 async function loadData(){
   if (!currentMode) return;
   try{
@@ -258,7 +209,7 @@ async function loadData(){
     renderTable("orders", data.openOrders);
     document.getElementById('ooCount').textContent=(data.openOrders?.length||1)-1;
 
-    let free="—", total="—", pnlVal="—", pnlPct="—", updated="";
+    let free="—", total="—", pnlVal="—", pnlPct="—", updated="—";
 
     if(currentMode === "invest"){
       free    = findValueByTitle(data.portfolio, "Свободные ₽");
@@ -267,22 +218,21 @@ async function loadData(){
       pnlPct  = findValueByTitle(data.portfolio, "PNL %");
       updated = findValueByTitle(data.portfolio, "Время обновления");
 
-      document.getElementById('pfFree').textContent = "Свободные ₽: " + fmtRub(free);
-      document.getElementById('pfTotal').textContent = "Объем ₽: " + fmtRub(total);
-      applyPillClassRaw(document.getElementById('pfPnlRub'), fmtRub(pnlVal), "PNL ₽");
-      applyPillClassRaw(document.getElementById('pfPnlPct'), fmtPct(pnlPct), "PNL %");
-    } else {
-      // Для крипто
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + free;
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
+      document.getElementById('pfPnlRub').textContent = "PNL ₽: " + pnlVal;
+      document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
+    } else if(currentMode === "kripto"){
       free    = findValueByTitle(data.portfolio, "Свободные $");
       total   = findValueByTitle(data.portfolio, "Общая стоимость портфеля");
       pnlPct  = findValueByTitle(data.portfolio, "Общий PnL %");
       pnlVal  = findValueByTitle(data.portfolio, "Общий PnL $");
       updated = findValueByTitle(data.portfolio, "Время обновления");
 
-      document.getElementById('pfFree').textContent = "Свободные $: " + fmtUsd(free);
-      document.getElementById('pfTotal').textContent = "Объем $: " + fmtUsd(total);
-      applyPillClassRaw(document.getElementById('pfPnlRub'), fmtUsd(pnlVal), "PNL $");
-      applyPillClassRaw(document.getElementById('pfPnlPct'), fmtPctCrypto(pnlPct), "PNL %");
+      document.getElementById('pfFree').textContent = "Свободные $: " + free;
+      document.getElementById('pfTotal').textContent = "Объем $: " + total;
+      document.getElementById('pfPnlRub').textContent = "PNL $: " + pnlVal;
+      document.getElementById('pfPnlPct').textContent = "PNL %: " + pnlPct;
     }
 
     document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
