@@ -82,7 +82,6 @@
   </footer>
 
   <button id="logoutBtn" class="logout">🚪 Выйти</button>
-  <button id="copyBtn" class="logout">📋 Копировать</button>
 </div>
 
 <script>
@@ -130,10 +129,7 @@ function clsPnL(v){
 function formatNum(val){
   const num = parseFloat(val);
   if(Number.isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  return num.toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2});
 }
 function applyPillClass(el, value, label){
   const num = parseFloat(value);
@@ -227,12 +223,11 @@ async function loadData(){
           }
         }
       } else {
-        // Для CRYPTO берём из I2, I4, I6, I8
-          free    = data.portfolio[2][9];  // I2
-          total   = data.portfolio[4][9];  // I2
-          pnlVal  = data.portfolio[6][9];  // I4
-          pnlPct  = data.portfolio[8][9];  // I6
-          updated = data.portfolio[10][9];  // I8
+        // Для CRYPTO напрямую берём из I2, I4, I6, I8
+        total   = data.portfolio[0][9];  // I2
+        pnlVal  = data.portfolio[1][9];  // I4
+        pnlPct  = data.portfolio[2][9];  // I6
+        updated = data.portfolio[3][9];  // I8
       }
     }catch(_){}
 
@@ -265,29 +260,6 @@ document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kri
 // Logout
 document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem("gtbot_mode"); location.reload(); };
 
-document.getElementById('copyBtn').onclick = () => {
-  function tableToText(id, title){
-    const rows = [...document.getElementById(id).rows];
-    if (!rows.length) return ${title}: нет данных\n;
-
-    let text = \n### ${title}\n;
-    text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
-    return text;
-  }
-
-  let out = "📊 Данные GT-BOT\n";
-  out += tableToText("portfolio", "Портфель");
-  out += "\n";
-  out += tableToText("orders", "Открытые ордера");
-
-  navigator.clipboard.writeText(out).then(()=>{
-    alert("✅ Скопировано в буфер");
-  }).catch(()=>{
-    alert("⚠ Не удалось скопировать");
-  });
-};
-
-  
 // Auto-start
 if (currentMode){ document.getElementById("startScreen").style.display="none"; document.getElementById("app").style.display="block"; updateModePill(); loadData(); }
 </script>
