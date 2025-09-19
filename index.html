@@ -166,7 +166,7 @@ function fmtNum(val) {
 function fmtInvestPct(val) {
   const num = parseFloat(val) * 100;
   if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + " %";
 }
 
 // Формат времени (строка ISO → человекочитаемое по Москве)
