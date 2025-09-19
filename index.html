@@ -4,6 +4,8 @@ Index
 
 <html lang="ru">
 <head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f12">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GT · Dashboard</title>
@@ -520,7 +522,11 @@ if (currentMode){
   updateModePill(); 
   loadData(); 
 }
-</script>
 
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+    .catch(err => console.error("SW error:", err));
+} 
+</script>
 </body>
 </html>
