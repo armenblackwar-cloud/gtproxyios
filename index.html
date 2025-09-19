@@ -185,9 +185,8 @@ function fmtRuDate(str) {
 // ===== Crypto PNL — сохраняем точность из таблицы! =====
 function fmtCryptoPnl(val, symbol) {
   if (!val || val === "" || val === "—" || isNaN(parseFloat(val))) return "—";
-  // Сохраняем точность из таблицы!
   let str = String(val).replace('.', ',');
-  return str + (symbol==="%" ? " %" : symbol);
+  return str + (symbol ? " " + symbol : "");
 }
 
 function setPillWithLabel(id, label, value, formatted, symbol = '') {
