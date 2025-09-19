@@ -73,7 +73,7 @@
     </section>
 
     <section class="card">
-      <h2>📑 Открытые ордера (<b id="ooCount">—</b>)</h2>
+      <h2>📑 Ордера (<b id="ooCount">—</b>)</h2>
       <div class="grid"><table id="orders"></table></div>
     </section>
   </main>
@@ -92,6 +92,8 @@
 // ====== Пароль ======
 const PASSWORD = "Gt4815162342!";
 const STORAGE_KEY = "gtbot_auth";
+
+// Проверка пароля
 if (localStorage.getItem(STORAGE_KEY) !== "ok") {
   const input = prompt("Введите пароль для доступа:");
   if (input === PASSWORD) {
@@ -108,20 +110,18 @@ const API_URLS = {
   invest: "https://script.google.com/macros/s/AKfycbwTsu4LskXHYxx7x9QpA9u-eACTZsPWvjrvDF72nE0oScpAA7lf5a39ZDZWRTC2V8APpw/exec"
 };
 
-let currentMode = localStorage.getItem("gtbot_mode") || null;
+let currentMode = null;
 
+// ===== Выбор режима =====
 function chooseMode(mode){
   currentMode = mode;
   localStorage.setItem("gtbot_mode", mode);
+
   document.getElementById("startScreen").style.display="none";
   document.getElementById("app").style.display="block";
-  loadData();
-  updateModePill();
-}
 
-function updateModePill(){
-  document.getElementById("modePill").textContent =
-    currentMode==="kripto" ? "GT-CRYPTO" : "GT-INVEST";
+  updateModePill();
+  loadData();
 }
 
 // ===== Helpers =====
@@ -157,12 +157,9 @@ function renderTable(id, rows){
       filteredRow = [row[2], row[3], row[4], row[6], row[7], row[8]]; 
     }
     if (id==='portfolio'){ 
-      if(currentMode==="kripto"){
-        // теперь с PNL $
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
-      } else {
-        filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
-      }
+      filteredRow = (currentMode==="kripto")
+        ? [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]]
+        : [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
     }
 
     const firstCell = String(filteredRow[0]||"").toLowerCase();
@@ -219,7 +216,6 @@ async function loadData(){
           if (k.includes("pnl %")) pnlPct = v;
         }
       } else {
-        // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
         free    = data.portfolio[2]?.[9]  ?? "—";
         total   = data.portfolio[4]?.[9]  ?? "—";
         pnlVal  = data.portfolio[6]?.[9]  ?? "—";
@@ -248,41 +244,8 @@ async function loadData(){
   }
 }
 
-// Auto-refresh
+// Авто-обновление (раз в минуту)
 setInterval(loadData,60000);
-
-// Switch mode
-document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
-// Logout
-document.getElementById('logoutBtn').onclick=()=>{ 
-  localStorage.removeItem(STORAGE_KEY); 
-  localStorage.removeItem("gtbot_mode"); 
-  location.reload(); 
-};
-
-// Copy
-document.getElementById('copyBtn').onclick = () => {
-  function tableToText(id, title){
-    const rows = [...document.getElementById(id).rows];
-    if (!rows.length) return `${title}: нет данных\n`;
-    let text = `\n### ${title}\n`;
-    text += rows.map(r => [...r.cells].map(c => c.innerText).join(" | ")).join("\n");
-    return text;
-  }
-  let out = "📊 Данные GT-BOT\n";
-  out += tableToText("portfolio", "Портфель");
-  out += "\n";
-  out += tableToText("orders", "Открытые ордера");
-  navigator.clipboard.writeText(out).then(()=>alert("✅ Скопировано")).catch(()=>alert("⚠ Ошибка копирования"));
-};
-
-// Auto-start
-if (currentMode){ 
-  document.getElementById("startScreen").style.display="none"; 
-  document.getElementById("app").style.display="block"; 
-  updateModePill(); 
-  loadData(); 
-}
 </script>
 </body>
 </html>
