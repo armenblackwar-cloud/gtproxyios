@@ -1,11 +1,10 @@
 {
-  "name": "GT · Dashboard",
+  "name": "GT Dashboard",
   "short_name": "GT",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f0f12",
   "theme_color": "#0f0f12",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
