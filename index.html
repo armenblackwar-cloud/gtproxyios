@@ -1,11 +1,6 @@
-Index 
-
 <!DOCTYPE html>
-
 <html lang="ru">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f0f12">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GT · Dashboard</title>
@@ -14,237 +9,37 @@ Index
       --bg:#0f0f12; --card:#171a21; --muted:#8a8f98; --text:#e9edf1;
       --green:#00c087; --red:#f6465d; --border:#2a2f3a; --yellow:#f0b90b;
     }
-
-```
-* { box-sizing: border-box; }
-
-body{
-  margin:0; 
-  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
-  background:var(--bg); 
-  color:var(--text); 
-  padding-top: env(safe-area-inset-top);
-  font-size: 12px;
-  overflow-x: hidden;
-}
-
-header{
-  position:sticky; 
-  top:0; 
-  background:#1a1f28; 
-  padding:8px; 
-  display:flex; 
-  flex-direction:column; 
-  gap:6px;
-  z-index: 100;
-}
-
-h1{
-  font-size:16px; 
-  margin:0; 
-  color:var(--yellow);
-  text-align: center;
-}
-
-.pill{
-  padding:4px 8px; 
-  border-radius:6px; 
-  font-size:10px; 
-  font-weight:600; 
-  text-align:center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pill.online{background:#193e2d; color:var(--green);}
-.pill.offline{background:#3e1919; color:var(--red);}
-.pill.pos{background:#193e2d; color:var(--green);}
-.pill.neg{background:#3e1919; color:var(--red);}
-.pill.muted{background:#333; color:var(--muted);}
-
-.header-top{
-  display:flex; 
-  gap:8px; 
-  align-items:center; 
-  justify-content: space-between;
-}
-
-.header-metrics{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.header-metrics .pill{
-  font-size: 9px;
-  padding: 3px 6px;
-}
-
-#switchBtn{
-  background:#333; 
-  cursor:pointer; 
-  border: none;
-  color: var(--text);
-  font-size: 10px;
-}
-
-main{
-  padding:8px; 
-  display:flex; 
-  flex-direction: column;
-  gap:12px;
-}
-
-.card{
-  background:var(--card); 
-  border:1px solid var(--border); 
-  border-radius:8px; 
-  overflow:hidden;
-}
-
-.card h2{
-  margin:0; 
-  padding:8px; 
-  font-size:13px; 
-  border-bottom:1px solid var(--border); 
-  color:var(--yellow);
-  text-align: center;
-}
-
-.table-container{
-  overflow-x: hidden;
-  width: 100%;
-}
-
-table{
-  width:100%; 
-  border-collapse:collapse; 
-  font-size:9px;
-}
-
-th, td{
-  padding:4px 2px;
-  border-bottom:1px solid var(--border);
-  text-align:center;
-  vertical-align: middle;
-  word-break: break-word;
-  overflow: hidden;
-}
-
-th{
-  background:#1a1f28; 
-  color:#c8ccd3; 
-  font-size:8px; 
-  position:sticky; 
-  top:0;
-  font-weight: 600;
-}
-
-/* Адаптивные колонки для портфеля */
-#portfolio th:nth-child(1), #portfolio td:nth-child(1) { width: 20%; } /* Актив */
-#portfolio th:nth-child(2), #portfolio td:nth-child(2) { width: 15%; } /* Кол-во */
-#portfolio th:nth-child(3), #portfolio td:nth-child(3) { width: 15%; } /* Цена */
-#portfolio th:nth-child(4), #portfolio td:nth-child(4) { width: 18%; } /* Стоимость */
-#portfolio th:nth-child(5), #portfolio td:nth-child(5) { width: 12%; } /* PNL% */
-#portfolio th:nth-child(6), #portfolio td:nth-child(6) { width: 20%; } /* PNL ₽/$ */
-
-/* Адаптивные колонки для ордеров */
-#orders th:nth-child(1), #orders td:nth-child(1) { width: 20%; } /* Актив */
-#orders th:nth-child(2), #orders td:nth-child(2) { width: 15%; } /* Тип */
-#orders th:nth-child(3), #orders td:nth-child(3) { width: 15%; } /* Кол-во */
-#orders th:nth-child(4), #orders td:nth-child(4) { width: 18%; } /* Цена */
-#orders th:nth-child(5), #orders td:nth-child(5) { width: 16%; } /* Время */
-#orders th:nth-child(6), #orders td:nth-child(6) { width: 16%; } /* Статус */
-
-.buy{color:var(--green); font-weight:600}
-.sell{color:var(--red); font-weight:600}
-.pos{color:var(--green); font-weight:600}
-.neg{color:var(--red); font-weight:600}
-.muted{color:var(--muted)}
-
-.sectionRow{
-  text-align:center; 
-  font-weight:700; 
-  color:var(--yellow); 
-  background:#222; 
-  padding:6px;
-}
-
-footer{
-  padding:8px; 
-  font-size:10px; 
-  color:var(--muted); 
-  text-align:center;
-  margin-bottom: env(safe-area-inset-bottom);
-}
-
-#startScreen{
-  display:flex; 
-  flex-direction:column; 
-  justify-content:center; 
-  align-items:center; 
-  height:100vh; 
-  gap:24px;
-  padding: 20px;
-}
-
-.startBtn{
-  background:var(--yellow); 
-  color:#000; 
-  font-weight:700; 
-  border:none; 
-  border-radius:12px; 
-  padding:16px 32px; 
-  font-size:16px; 
-  cursor:pointer;
-  width: 100%;
-  max-width: 280px;
-}
-
-.btnRow{
-  display: flex;
-  gap: 8px;
-  padding: 8px;
-  justify-content: center;
-}
-
-.logout{
-  background:#333; 
-  cursor:pointer; 
-  padding:8px 16px; 
-  border: none;
-  border-radius:8px; 
-  font-size:11px;
-  color: var(--text);
-  flex: 1;
-  max-width: 140px;
-}
-
-/* Скрываем лишние элементы на очень маленьких экранах */
-@media (max-width: 360px) {
-  .header-metrics {
-    grid-template-columns: 1fr;
-  }
-  
-  table { font-size: 8px; }
-  th, td { padding: 2px 1px; }
-  
-  .pill { font-size: 8px; padding: 2px 4px; }
-}
-
-/* Убираем горизонтальную прокрутку */
-html, body {
-  overflow-x: hidden;
-  width: 100%;
-}
-
-.card {
-  min-width: 0; /* Позволяет контенту сжиматься */
-}
-```
-
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+      background:var(--bg); color:var(--text); padding-top: env(safe-area-inset-top);}
+    header{position:sticky; top:0; background:#1a1f28; padding:6px; font-size:11px; display:flex; flex-direction:column; gap:4px}
+    h1{font-size:14px; margin:0; color:var(--yellow);}
+    .pill{padding:2px 6px; border-radius:8px; font-size:10px; font-weight:600; text-align:center}
+    .pill.online{background:#193e2d; color:var(--green);}
+    .pill.offline{background:#3e1919; color:var(--red);}
+    .pill.pos{background:#193e2d; color:var(--green);}
+    .pill.neg{background:#3e1919; color:var(--red);}
+    .pill.muted{background:#333; color:var(--muted);}
+    .logout{background:#333; cursor:pointer; padding:6px 10px; margin:10px 5px; display:inline-block; border-radius:8px; font-size:12px;}
+    .header-top, .header-bottom{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+    .header-bottom{width:100%; justify-content:space-between}
+    .header-bottom .pill{flex:1; min-width:0}
+    main{padding:6px; display:grid; gap:8px}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden}
+    .card h2{margin:0; padding:6px; font-size:12px; border-bottom:1px solid var(--border); color:var(--yellow)}
+    .grid{overflow-x:hidden}
+    table{width:100%; border-collapse:collapse; font-size:8px; table-layout:auto}
+    th,td{padding:3px 2px;border:1px solid var(--border);text-align:center;white-space:normal;word-wrap:break-word;max-width:80px;}
+    th{background:#1a1f28; color:#c8ccd3; font-size:8px; position:sticky; top:0}
+    .buy{color:var(--green); font-weight:600}
+    .sell{color:var(--red); font-weight:600}
+    .pos{color:var(--green); font-weight:600}
+    .neg{color:var(--red); font-weight:600}
+    .muted{color:var(--muted)}
+    .sectionRow{text-align:center; font-weight:700; color:var(--yellow); background:#222; padding:4px;}
+    footer{padding:4px; font-size:9px; color:var(--muted); text-align:center}
+    #startScreen{display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; gap:20px}
+    .startBtn{background:var(--yellow); color:#000; font-weight:700; border:none; border-radius:8px; padding:15px 25px; font-size:16px; cursor:pointer}
+    .btnRow{text-align:center; margin:10px 0;}
   </style>
 </head>
 <body>
@@ -260,51 +55,37 @@ html, body {
     <div class="header-top">
       <h1 id="modePill">—</h1>
       <span id="status" class="pill">—</span>
-      <button id="switchBtn" class="pill">🔄</button>
+      <span id="updated" class="pill">—</span>
+      <button id="switchBtn" class="pill">🔄 Переключить</button>
     </div>
-
-```
-<div class="header-metrics">
-  <span id="pfFree" class="pill">Свободные: —</span>
-  <span id="pfTotal" class="pill">Объем: —</span>
-  <span id="pfPnlPct" class="pill">PNL %: —</span>
-  <span id="pfPnlRub" class="pill">PNL ₽/$: —</span>
-</div>
-
-<div style="text-align: center; margin-top: 4px;">
-  <span id="updated" class="pill" style="font-size: 8px;">—</span>
-</div>
-```
-
+    <div class="header-bottom">
+      <span id="pfFree" class="pill">Свободные: —</span>
+      <span id="pfPnlPct" class="pill">PNL %: —</span>
+      <span id="pfPnlRub" class="pill">PNL ₽/$: —</span>
+      <span id="pfTotal" class="pill">Объем: —</span>
+    </div>
   </header>
 
   <main>
     <section class="card">
       <h2>📊 Портфель</h2>
-      <div class="table-container">
-        <table id="portfolio"></table>
-      </div>
+      <div class="grid"><table id="portfolio"></table></div>
     </section>
 
-```
-<section class="card">
-  <h2>📑 Ордера (<b id="ooCount">—</b>)</h2>
-  <div class="table-container">
-    <table id="orders"></table>
-  </div>
-</section>
-```
-
+    <section class="card">
+      <h2>📑 Открытые ордера (<b id="ooCount">—</b>)</h2>
+      <div class="grid"><table id="orders"></table></div>
+    </section>
   </main>
+
+  <footer>
+    📱 Добавь на iPhone: Поделиться → «На экран Домой»
+  </footer>
 
   <div class="btnRow">
     <button id="logoutBtn" class="logout">🚪 Выйти</button>
     <button id="copyBtn" class="logout">📋 Копировать</button>
   </div>
-
-  <footer>
-    📱 Добавь на iPhone: Поделиться → «На экран Домой»
-  </footer>
 </div>
 
 <script>
@@ -366,7 +147,7 @@ function renderTable(id, rows){
   const table = document.getElementById(id);
   table.innerHTML = "";
   if (!rows || !rows.length){
-    table.innerHTML = "<tr><td class='muted' colspan='6'>Нет данных</td></tr>";
+    table.innerHTML = "<tr><td class='muted'>Нет данных</td></tr>";
     return;
   }
 
@@ -377,6 +158,7 @@ function renderTable(id, rows){
     }
     if (id==='portfolio'){ 
       if(currentMode==="kripto"){
+        // теперь с PNL $
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
       } else {
         filteredRow = [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]];
@@ -399,19 +181,8 @@ function renderTable(id, rows){
         const tag = i===0?"th":"td";
         const td=document.createElement(tag);
         let val = (cell===undefined || cell===null) ? "" : String(cell).trim();
-        
-        // Сокращаем длинные значения
-        if (tag === 'td' && val.length > 12 && !val.includes('%')) {
-          val = val.substring(0, 10) + '..';
-        }
-        
-        if (id==='orders' && i>0 && j===1){ 
-          td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; 
-        }
-        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ 
-          td.className=clsPnL(val); 
-        }
-        
+        if (id==='orders' && i>0 && j===1){ td.className=val==="BUY"?"buy":val==="SELL"?"sell":""; }
+        if (id==='portfolio' && i>0 && (j >= filteredRow.length-2)){ td.className=clsPnL(val); }
         td.textContent=val;
         tr.appendChild(td);
       });
@@ -424,7 +195,7 @@ function renderTable(id, rows){
 async function loadData(){
   if (!currentMode) return;
   try{
-    document.getElementById('status').textContent="Загрузка";
+    document.getElementById('status').textContent="Обновляю…";
     document.getElementById('status').className="pill";
     const res = await fetch(API_URLS[currentMode]);
     const data = await res.json();
@@ -448,6 +219,7 @@ async function loadData(){
           if (k.includes("pnl %")) pnlPct = v;
         }
       } else {
+        // CRYPTO: J3, J5, J7, J9, J11 (raw значения)
         free    = data.portfolio[2]?.[9]  ?? "—";
         total   = data.portfolio[4]?.[9]  ?? "—";
         pnlVal  = data.portfolio[6]?.[9]  ?? "—";
@@ -457,43 +229,32 @@ async function loadData(){
     }catch(_){}
 
     if(currentMode === "invest"){
-      document.getElementById('pfFree').textContent = "Свободные: " + free + "₽";
-      document.getElementById('pfTotal').textContent = "Объем: " + total + "₽";
+      document.getElementById('pfFree').textContent = "Свободные ₽: " + free;
+      document.getElementById('pfTotal').textContent = "Объем ₽: " + total;
       applyPillClassRaw(document.getElementById('pfPnlRub'), pnlVal, "PNL ₽");
     } else {
-      document.getElementById('pfFree').textContent = "Свободные: " + free + "$";
-      document.getElementById('pfTotal').textContent = "Объем: " + total + "$";
+      document.getElementById('pfFree').textContent = "Свободные $: " + free;
+      document.getElementById('pfTotal').textContent = "Объем $: " + total;
       applyPillClassRaw(document.getElementById('pfPnlRub'), pnlVal, "PNL $");
     }
     applyPillClassRaw(document.getElementById('pfPnlPct'), pnlPct, "PNL %");
 
-    const now = new Date();
-    const timeStr = updated || now.toLocaleString('ru-RU', {
-      hour: '2-digit', 
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit'
-    });
-    
-    document.getElementById('updated').textContent = "Обновлено: " + timeStr;
-    document.getElementById('status').textContent="Online";
+    document.getElementById('updated').textContent = updated || new Date().toLocaleString('ru-RU');
+    document.getElementById('status').textContent="Онлайн";
     document.getElementById('status').className="pill online";
   }catch(e){
-    document.getElementById('status').textContent="Offline";
+    document.getElementById('status').textContent="Оффлайн";
     document.getElementById('status').className="pill offline";
   }
 }
 
 // Auto-refresh
-setInterval(loadData, 60000);
+setInterval(loadData,60000);
 
 // Switch mode
-document.getElementById("switchBtn").onclick = () => { 
-  chooseMode(currentMode==="kripto"?"invest":"kripto"); 
-};
-
+document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kripto"?"invest":"kripto"); };
 // Logout
-document.getElementById('logoutBtn').onclick = () => { 
+document.getElementById('logoutBtn').onclick=()=>{ 
   localStorage.removeItem(STORAGE_KEY); 
   localStorage.removeItem("gtbot_mode"); 
   location.reload(); 
@@ -522,11 +283,6 @@ if (currentMode){
   updateModePill(); 
   loadData(); 
 }
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .catch(err => console.error("SW error:", err));
-} 
 </script>
 </body>
 </html>
