@@ -116,10 +116,12 @@ function clsPnL(v){
   if (isNaN(num) || num === 0) return 'muted';
   return num > 0 ? 'pos' : 'neg';
 }
-function formatRu(val){
+function formatNum(val, isPercent=false){
   const num = parseFloat(val);
   if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return isPercent 
+    ? num.toLocaleString('ru-RU',{minimumFractionDigits:2, maximumFractionDigits:2}) + " %"
+    : num.toLocaleString('ru-RU',{minimumFractionDigits:2, maximumFractionDigits:2});
 }
 function applyPillClassRaw(el, value, label){
   const num = parseFloat(value);
@@ -130,7 +132,7 @@ function applyPillClassRaw(el, value, label){
   } else {
     el.className = "pill neg";
   }
-  el.textContent = label + ": " + formatRu(value);
+  el.textContent = label + ": " + formatNum(value, label.includes('%'));
 }
 
 // ===== Mode =====
@@ -166,7 +168,9 @@ function renderTable(id, rows){
       const tag=i===0?"th":"td";
       const td=document.createElement(tag);
       let val=(cell===undefined||cell===null)?"":String(cell).trim();
-      if(tag==="td" && val!==""){if(!isNaN(val))val=formatRu(val);}
+      if(tag==="td" && val!=="" && !isNaN(val)){
+        val=formatNum(val, (id==='portfolio' && j===filteredRow.length-1));
+      }
       if(id==='orders'&&i>0&&j===1){td.className=val==="BUY"?"buy":val==="SELL"?"sell":"";}
       if(id==='portfolio'&&i>0&&(j>=filteredRow.length-2)){td.className=clsPnL(val);}
       td.textContent=val;
@@ -202,12 +206,12 @@ async function loadData(){
       updated=data.portfolio[10]?.[9]??"";
     }
     if(currentMode==="invest"){
-      document.getElementById('pfFree').textContent="Свободные ₽: "+formatRu(free);
-      document.getElementById('pfTotal').textContent="Объем ₽: "+formatRu(total);
+      document.getElementById('pfFree').textContent="Свободные ₽: "+formatNum(free);
+      document.getElementById('pfTotal').textContent="Объем ₽: "+formatNum(total);
       applyPillClassRaw(document.getElementById('pfPnlRub'),pnlVal,"PNL ₽");
     } else {
-      document.getElementById('pfFree').textContent="Свободные $: "+formatRu(free);
-      document.getElementById('pfTotal').textContent="Объем $: "+formatRu(total);
+      document.getElementById('pfFree').textContent="Свободные $: "+formatNum(free);
+      document.getElementById('pfTotal').textContent="Объем $: "+formatNum(total);
       applyPillClassRaw(document.getElementById('pfPnlRub'),pnlVal,"PNL $");
     }
     applyPillClassRaw(document.getElementById('pfPnlPct'),pnlPct,"PNL %");
