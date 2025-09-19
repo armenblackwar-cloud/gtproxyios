@@ -166,7 +166,7 @@ function fmtNum(val) {
 function fmtInvestPct(val) {
   const num = parseFloat(val) * 100;
   if (isNaN(num)) return val;
-  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + " %";
+  return num.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
 }
 
 // Формат времени (строка ISO → человекочитаемое по Москве)
@@ -185,8 +185,9 @@ function fmtRuDate(str) {
 // ===== Crypto PNL — сохраняем точность из таблицы! =====
 function fmtCryptoPnl(val, symbol) {
   if (!val || val === "" || val === "—" || isNaN(parseFloat(val))) return "—";
+  // Сохраняем точность из таблицы!
   let str = String(val).replace('.', ',');
-  return str + (symbol ? " " + symbol : "");
+  return str + symbol;
 }
 
 function setPillWithLabel(id, label, value, formatted, symbol = '') {
