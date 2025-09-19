@@ -1,5 +1,11 @@
-  "name": "GT-Бот",
-  "short_name": "GT-Bot",
+{
+  "name": "GT · Dashboard",
+  "short_name": "GT",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0f12",
+  "theme_color": "#0f0f12",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
@@ -11,9 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#0f0f12",
-  "background_color": "#0f0f12"
+  ]
 }
