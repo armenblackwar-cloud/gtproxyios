@@ -3,6 +3,7 @@
   "short_name": "GT",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0f0f12",
   "theme_color": "#0f0f12",
   "icons": [
