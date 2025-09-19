@@ -112,27 +112,30 @@ let currentMode = null;
 
 // ===== Helpers =====
 function clsPnL(v){
-  const num = parseFloat(String(v).replace(',', '.').replace(/\s+/g,''));
+  const num = parseFloat(v);
   if (isNaN(num) || num === 0) return 'muted';
   return num > 0 ? 'pos' : 'neg';
 }
-function formatNum(val, isPercent=false){
+function formatNum(val, isPercent=false, isMoney=false){
   const num = parseFloat(val);
   if (isNaN(num)) return val;
-  return isPercent 
-    ? num.toLocaleString('ru-RU',{minimumFractionDigits:2, maximumFractionDigits:2}) + " %"
-    : num.toLocaleString('ru-RU',{minimumFractionDigits:2, maximumFractionDigits:2});
+  let out = num.toLocaleString('ru-RU',{minimumFractionDigits:2, maximumFractionDigits:2});
+  if (num > 0) out = "+" + out;
+  if (isPercent) out += " %";
+  if (isMoney) out += (currentMode==="invest" ? " ₽" : " $");
+  return out;
 }
 function applyPillClassRaw(el, value, label){
   const num = parseFloat(value);
-  if(isNaN(num) || num===0){
+  if (isNaN(num)){
     el.className = "pill muted";
-  } else if(num > 0){
-    el.className = "pill pos";
-  } else {
-    el.className = "pill neg";
+    el.textContent = label + ": —";
+    return;
   }
-  el.textContent = label + ": " + formatNum(value, label.includes('%'));
+  el.className = num > 0 ? "pill pos" : num < 0 ? "pill neg" : "pill muted";
+  let isPercent = label.includes("%");
+  let isMoney = label.includes("PNL");
+  el.textContent = label + ": " + formatNum(value,isPercent,isMoney);
 }
 
 // ===== Mode =====
@@ -169,10 +172,11 @@ function renderTable(id, rows){
       const td=document.createElement(tag);
       let val=(cell===undefined||cell===null)?"":String(cell).trim();
       if(tag==="td" && val!=="" && !isNaN(val)){
-        val=formatNum(val, (id==='portfolio' && j===filteredRow.length-1));
+        let isPercent = (id==='portfolio' && j===filteredRow.length-2);
+        let isMoney = (id==='portfolio' && j===filteredRow.length-1);
+        val=formatNum(val,isPercent,isMoney);
+        td.className=clsPnL(val);
       }
-      if(id==='orders'&&i>0&&j===1){td.className=val==="BUY"?"buy":val==="SELL"?"sell":"";}
-      if(id==='portfolio'&&i>0&&(j>=filteredRow.length-2)){td.className=clsPnL(val);}
       td.textContent=val;
       tr.appendChild(td);
     });
