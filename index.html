@@ -174,13 +174,18 @@ function fmtRuDate(str) {
   try {
     const dt = new Date(str);
     if (isNaN(dt.getTime())) return str;
-    dt.setHours(dt.getHours() + 3); // Москва: UTC+3
     return dt.toLocaleString('ru-RU', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
+      timeZone: 'Europe/Moscow',   // фиксируем МСК
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     }).replace(',', '');
   } catch(e) { return str; }
 }
+
 
 // ===== Crypto PNL — сохраняем точность из таблицы! =====
 function fmtCryptoPnl(val, symbol) {
