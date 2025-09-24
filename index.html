@@ -341,6 +341,27 @@ document.getElementById('copyBtn').onclick = () => {
   navigator.clipboard.writeText(out).then(()=>alert("✅ Скопировано")).catch(()=>alert("⚠ Ошибка копирования"));
 };
 
+function doGet(e) {
+  const action = e && e.parameter && e.parameter.action;
+
+  if (action === "start") {
+    // запускаем обновление прямо сейчас
+    try {
+      getPortfolio && getPortfolio();
+      getOrders && getOrders();
+      refreshPortfolio_ && refreshPortfolio_();
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ error: String(err) }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, msg: "Обновление выполнено" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ ok: true, ping: true }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+  
 // Auto-start
 if (currentMode){ 
   document.getElementById("startScreen").style.display="none"; 
