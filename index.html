@@ -136,9 +136,9 @@ function chooseMode(mode){
   
   // Дергаем GAS для запуска обновления
   fetch(API_URLS[mode] + "?action=start")
-  .then(r => r.json())
-  .then(j => console.log("GAS обновление:", j))
-  .catch(err => console.error("Ошибка запуска GAS:", err));
+    .then(r => r.json())
+    .then(j => console.log("GAS обновление:", j))
+    .catch(err => console.error("Ошибка запуска GAS:", err));
 }
 
 function updateModePill(){
