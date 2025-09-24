@@ -133,6 +133,12 @@ function chooseMode(mode){
   document.getElementById("app").style.display="block";
   updateModePill();
   loadData();
+  
+  // Дергаем GAS для запуска обновления
+  fetch(API_URLS[mode] + "?action=start")
+  .then(r => r.json())
+  .then(j => console.log("GAS обновление:", j))
+  .catch(err => console.error("Ошибка запуска GAS:", err));
 }
 
 function updateModePill(){
@@ -340,12 +346,6 @@ document.getElementById('copyBtn').onclick = () => {
   out += tableToText("orders", "Открытые ордера");
   navigator.clipboard.writeText(out).then(()=>alert("✅ Скопировано")).catch(()=>alert("⚠ Ошибка копирования"));
 };
-
-// Дергаем GAS для запуска обновления
-fetch(API_URLS[mode] + "?action=start")
-  .then(r => r.json())
-  .then(j => console.log("GAS обновление:", j))
-  .catch(err => console.error("Ошибка запуска GAS:", err));
   
 // Auto-start
 if (currentMode){ 
