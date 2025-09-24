@@ -326,6 +326,14 @@ document.getElementById("switchBtn").onclick=()=>{ chooseMode(currentMode==="kri
 
 // Logout
 document.getElementById('logoutBtn').onclick=()=>{ 
+  // стопим автообновление GAS при выходе
+  if (currentMode && API_URLS[currentMode]) {
+    fetch(API_URLS[currentMode] + "?action=stop")
+      .then(r => r.json())
+      .then(j => console.log("GAS стоп:", j))
+      .catch(err => console.error("Ошибка стопа GAS:", err));
+  }
+
   localStorage.removeItem(STORAGE_KEY); 
   localStorage.removeItem("gtbot_mode"); 
   location.reload(); 
